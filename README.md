@@ -1,6 +1,12 @@
-# Traffic-Flow-Prediction
-
 # Traffic Flow Prediction
+Group Assignment for COS30018 Inteligent Systems Semester 2 2022
+
+## Group Members
+- Josh Hehir 102932561
+- David Nguyen 102927185
+- Brian Burns 102313108
+
+
 Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
 
 ## Requirement
