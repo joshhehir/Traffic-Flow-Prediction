@@ -1,4 +1,6 @@
 # Traffic Flow Prediction
+Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU)
+
 Group Assignment for COS30018 Inteligent Systems Semester 2 2022
 
 ## Group Members
@@ -6,8 +8,6 @@ Group Assignment for COS30018 Inteligent Systems Semester 2 2022
 - David Nguyen 102927185
 - Brian Burns 102313108
 
-
-Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
 
 ## Requirement
 - Python 3.6    
