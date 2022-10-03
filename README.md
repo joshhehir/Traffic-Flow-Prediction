@@ -1,19 +1,25 @@
-# Traffic Flow Prediction
-Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU)
+## Traffic Flow Prediction
 
-Group Assignment for COS30018 Inteligent Systems Semester 2 2022
+Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU) 
 
-## Group Members
-- Josh Hehir 102932561
-- David Nguyen 102927185
-- Brian Burns 102313108
+COS30018 - Intelligent Systems
 
+## Getting Started
 
-## Requirement
-- Python 3.6    
-- Tensorflow-gpu 1.5.0  
-- Keras 2.1.3
-- scikit-learn 0.19
+These instructions will explain the process of getting the system up and running on your local machine.
+
+### Prerequisites
+
+Graphviz - Graph Visualization Software  
+Python 3.6.x
+```
+keras
+matplotlib
+pydot
+pandas
+scikit-learn
+tensorflow
+```
 
 ## Train the model
 
@@ -53,22 +59,12 @@ These are the details for the traffic flow prediction experiment.
 
 ![evaluate](/TFPS/images/eva.png)
 
-## Reference
+## Authors
 
-	@article{SAEs,  
-	  title={Traffic Flow Prediction With Big Data: A Deep Learning Approach},  
-	  author={Y Lv, Y Duan, W Kang, Z Li, FY Wang},
-	  journal={IEEE Transactions on Intelligent Transportation Systems, 2015, 16(2):865-873},
-	  year={2015}
-	}
-	
-	@article{RNN,  
-	  title={Using LSTM and GRU neural network methods for traffic flow prediction},  
-	  author={R Fu, Z Zhang, L Li},
-	  journal={Chinese Association of Automation, 2017:324-328},
-	  year={2017}
-	}
+* **Josh Hehir** [102932561@student.swin.edu.au](mailto:102932561@student.swin.edu.au)  
+* **David Nguyen** [102927185@student.swin.edu.au](mailto:102927185@student.swin.edu.au)  
+* **Brian Burns** [102313108@student.swin.edu.au](mailto:102313108@student.swin.edu.au) 
 
+## Acknowledgments
 
-## Copyright
-See [LICENSE](LICENSE) for details.
+* **xiaochus** - *Base code* - [Traffic Flow Prediction](https://github.com/xiaochus/TrafficFlowPrediction)
