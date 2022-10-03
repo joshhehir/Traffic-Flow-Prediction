@@ -6,7 +6,7 @@ COS30018 - Intelligent Systems
 
 ## Getting Started
 
-These instructions will explain the process of getting the system up and running on your local machine.
+These instructions will explain the process of getting the system working on your local machine.
 
 ### Prerequisites
 
