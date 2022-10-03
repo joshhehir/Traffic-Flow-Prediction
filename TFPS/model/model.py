@@ -1,8 +1,7 @@
 """
 Defination of NN model
 """
-from keras.layers import Dense, Dropout, Activation
-from keras.layers.recurrent import LSTM, GRU
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU
 from keras.models import Sequential
 
 
