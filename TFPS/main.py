@@ -92,6 +92,7 @@ def plot_results(y_true, y_preds, names):
 
 def main():
 
+    node_index = 10
     lstm = load_model('model/lstm.h5')
     gru = load_model('model/gru.h5')
     saes = load_model('model/saes.h5')
@@ -99,24 +100,25 @@ def main():
     names = ['LSTM', 'GRU', 'SAEs']
 
     lag = 12
-    _, _, X_test, y_test, scaler = process_data("data/2006.csv", lag)
-    y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
+    nodes = process_data("data/2006.csv", lag)
+
+    nodes[node_index].y_test = nodes[node_index].scaler.inverse_transform(nodes[node_index].y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
     y_preds = []
     for name, model in zip(names, models):
         if name == 'SAEs':
-            X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1]))
+            X_test = np.reshape(nodes[node_index].x_test, (nodes[node_index].x_test.shape[0], nodes[node_index].x_test.shape[1]))
         else:
-            X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+            X_test = np.reshape(nodes[node_index].x_test, (nodes[node_index].x_test.shape[0], nodes[node_index].x_test.shape[1], 1))
         file = 'images/' + name + '.png'
         # plot_model(model, to_file=file, show_shapes=True)
         predicted = model.predict(X_test)
-        predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
+        predicted = nodes[node_index].scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
         y_preds.append(predicted[:96])
         print(name)
-        eva_regress(y_test, predicted)
+        eva_regress(nodes[node_index].y_test, predicted)
 
-    plot_results(y_test[: 96], y_preds, names)
+    plot_results(nodes[node_index].y_test[: 96], y_preds, names)
 
 
 if __name__ == '__main__':
