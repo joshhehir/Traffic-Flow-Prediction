@@ -13,7 +13,7 @@ from keras.callbacks import EarlyStopping
 warnings.filterwarnings("ignore")
 
 
-def train_model(model, X_train, y_train, name, config):
+def train_model(model, X_train, y_train, node_name, name, config):
     """train
     train a single model.
 
@@ -33,9 +33,9 @@ def train_model(model, X_train, y_train, name, config):
         epochs=config["epochs"],
         validation_split=0.05)
 
-    model.save('model/' + name + '.h5')
+    model.save('model/' + node_name + '/' + name + '.h5')
     df = pd.DataFrame.from_dict(hist.history)
-    df.to_csv('model/' + name + ' loss.csv', encoding='utf-8', index=False)
+    df.to_csv('model/' + node_name + '/' + name + ' loss.csv', encoding='utf-8', index=False)
 
 
 def train_seas(models, X_train, y_train, name, config):
@@ -86,21 +86,21 @@ def main(argv):
     args = parser.parse_args()
 
     lag = 12
-    config = {"batch": 256, "epochs": 600}
-    X_train, y_train, _, _, _ = process_data("data/2006.csv", lag)
-
-    if args.model == 'lstm':
-        X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-        m = model.get_lstm([12, 64, 64, 1])
-        train_model(m, X_train, y_train, args.model, config)
-    if args.model == 'gru':
-        X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-        m = model.get_gru([12, 64, 64, 1])
-        train_model(m, X_train, y_train, args.model, config)
-    if args.model == 'saes':
-        X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1]))
-        m = model.get_saes([12, 400, 400, 400, 1])
-        train_seas(m, X_train, y_train, args.model, config)
+    config = {"batch": 256, "epochs": 6}
+    nodes = process_data("data/2006.csv", lag)
+    for node in nodes:
+        if args.model == 'lstm':
+            node.x_train = np.reshape(node.x_train, (node.x_train.shape[0], node.x_train.shape[1], 1))
+            m = model.get_lstm([12, 64, 64, 1])
+            train_model(m, node.x_train, node.y_train, node.name, args.model, config)
+        if args.model == 'gru':
+            node.x_train = np.reshape(node.x_train, (node.x_train.shape[0], node.x_train.shape[1], 1))
+            m = model.get_gru([12, 64, 64, 1])
+            train_model(m, node.x_train, node.y_train, node.name, args.model, config)
+        if args.model == 'saes':
+            node.x_train = np.reshape(node.x_train, (node.x_train.shape[0], node._train.shape[1]))
+            m = model.get_saes([12, 400, 400, 400, 1])
+            train_seas(m, node.x_train, node.y_train, node.name, args.model, config)
 
 
 if __name__ == '__main__':
