@@ -46,8 +46,8 @@ def train_seas(models, x_train, y_train, name, scats, junction, config):
     for i in range(len(models) - 1):
         if i > 0:
             p = models[i - 1]
-            hidden_layer_model = Model(input=p.input,
-                                       output=p.get_layer('hidden').output)
+            hidden_layer_model = Model(p.input,
+                                       p.get_layer('hidden').output)
             temp = hidden_layer_model.predict(temp)
         m = models[i]
         m.compile(loss="mse", optimizer="rmsprop", metrics=['mape'])
