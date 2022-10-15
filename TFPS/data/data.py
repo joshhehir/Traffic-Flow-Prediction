@@ -1,96 +1,57 @@
 """
 Processing the data
 """
+from time import gmtime, strftime
+
 import numpy as np
-import math
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from data.scats import ScatsData
+
+SCATS_DATA = ScatsData()
 
 
-class Node:
-    def __init__(self, name, x_train, y_train, x_test, y_test, scaler):
-        self.name = name
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
-        self.scaler = scaler
+def format_time_to_index(time):
+    time_places = time.split(":")
+    hours = int(time_places[0])
+    minutes = int(time_places[1])
+    total_minutes = hours * 60 + minutes
+
+    return (0, total_minutes / 15)[total_minutes > 0]
 
 
-def process_data(file, lags):
-    """Process data
-    Reshape and split train\test data.
-
-    # Arguments
-        train: String, name of .csv train file.
-        test: String, name of .csv test file.
-        lags: integer, time lag.
-    # Returns 
-        X_train: ndarray.
-        y_train: ndarray.
-        X_test: ndarray.
-        y_test: ndarray.
-        scaler: StandardScaler.
-    """
-
-    df = pd.read_csv(file, encoding='utf-8').fillna(0)
-    nodes = []
-    for x in range(int(len(df) / 31)):
-        # scaler = StandardScaler().fit(df1[attr].values)
-        scaler = MinMaxScaler(feature_range=(0, 1)).fit(get_month_array(df, x * 31, 31).reshape(-1, 1))
-        flow1 = scaler.transform(get_month_array(df, x * 31, 15).reshape(-1, 1)).reshape(1, -1)[0]
-        flow2 = scaler.transform(get_month_array(df, x * 31 + 15, 16).reshape(-1, 1)).reshape(1, -1)[0]
-
-        train, test = [], []
-        for i in range(lags, len(flow1)):
-            train.append(flow1[i - lags: i + 1])
-        for i in range(lags, len(flow2)):
-            test.append(flow2[i - lags: i + 1])
-
-        train = np.array(train)
-        test = np.array(test)
-        np.random.shuffle(train)
-
-        x_train = train[:, :-1]
-        y_train = train[:, -1]
-        x_test = test[:, :-1]
-        y_test = test[:, -1]
-
-        node = Node(df["Location"].values[x * 31], x_train, y_train, x_test, y_test, scaler)
-        nodes.append(node)
-
-        print(node.name)
-
-    return nodes
+def format_time(index):
+    return strftime("%H:%M", gmtime(index * 15 * 60))
 
 
-def get_month_array(data, start_position, month_length):
-    array = []
-    for x in range(96):
-        column = data["V{:02d}".format(x)].values
-        temp = []
-        for y in range(len(column)):
-            temp.append(column[y])
-        array.append(temp)
-    reordered_array = list(zip(*array[::1]))
-    output = []
-    for x in range(len(reordered_array)):
-        for y in range(len(reordered_array[x])):
-            if x >= start_position and x < start_position + month_length:
-                output.append(reordered_array[x][y])
-    return np.array(output)
+def format_date(date):
+    return pd.datetime.strftime(date, "%d/%m/%Y")
 
 
-def reorder_array(array, spacing, length):
-    output = np.array(array)
-    print(len(array))
-    idx = []
+def process_data(scats_number, junction, lags):
+    volume_data = SCATS_DATA.get_scats_volume(scats_number, junction)
+    volume_training = volume_data[:2016]
+    volume_testing = volume_data[2016:]
 
-    for x in range(spacing):
-        for y in range(length):
-            idx.append((y * spacing) + x)
-    return output[idx]
+    # scaler = StandardScaler().fit(volume.values)
+    scaler = MinMaxScaler(feature_range=(0, 1)).fit(volume_training.reshape(-1, 1))
+    flow1 = scaler.transform(volume_training.reshape(-1, 1)).reshape(1, -1)[0]
+    flow2 = scaler.transform(volume_testing.reshape(-1, 1)).reshape(1, -1)[0]
 
+    train, test = [], []
+    for i in range(lags, len(flow1)):
+        train.append(flow1[i - lags: i + 1])
+    for i in range(lags, len(flow2)):
+        test.append(flow2[i - lags: i + 1])
 
-if __name__ == '__main__':
-    process_data("2006.csv", 12)
+    train = np.array(train)
+    test = np.array(test)
+
+    np.random.shuffle(train)
+
+    x_train = train[:, :-1]
+    y_train = train[:, -1]
+    x_test = test[:, :-1]
+    y_test = test[:, -1]
+
+    return x_train, y_train, x_test, y_test, scaler

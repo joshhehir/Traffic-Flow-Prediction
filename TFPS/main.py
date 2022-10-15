@@ -1,29 +1,34 @@
 """
 Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
 """
+import argparse
 import math
+import os
+import sys
 import warnings
-import numpy as np
-import pandas as pd
-from data.data import process_data
-from keras.models import load_model
-from keras.utils.vis_utils import plot_model
-import sklearn.metrics as metrics
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from keras.models import load_model
+from keras.utils.vis_utils import plot_model
+from sklearn import metrics
+from data.data import process_data
+from settings import get_setting
+
 warnings.filterwarnings("ignore")
 
 
 def MAPE(y_true, y_pred):
     """Mean Absolute Percentage Error
-    Calculate the mape.
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-    # Returns
-        mape: Double, result data for train.
-    """
-
+        Calculate the mape.
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+        # Returns
+            mape: Double, result data for train.
+        """
     y = [x for x in y_true if x > 0]
     y_pred = [y_pred[i] for i in range(len(y_true)) if y_true[i] > 0]
 
@@ -41,17 +46,26 @@ def MAPE(y_true, y_pred):
 
 def eva_regress(y_true, y_pred):
     """Evaluation
-    evaluate the predicted resul.
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-    """
-
+        evaluate the predicted resul.
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+        """
     mape = MAPE(y_true, y_pred)
     vs = metrics.explained_variance_score(y_true, y_pred)
     mae = metrics.mean_absolute_error(y_true, y_pred)
     mse = metrics.mean_squared_error(y_true, y_pred)
     r2 = metrics.r2_score(y_true, y_pred)
+
+    mtx = {
+        "mape": mape,
+        "evs": vs,
+        "mae": mae,
+        "mse": mse,
+        "rmse": math.sqrt(mse),
+        "r2": r2
+    }
+
     print('explained_variance_score:%f' % vs)
     print('mape:%f%%' % mape)
     print('mae:%f' % mae)
@@ -59,15 +73,17 @@ def eva_regress(y_true, y_pred):
     print('rmse:%f' % math.sqrt(mse))
     print('r2:%f' % r2)
 
+    return mtx
+
 
 def plot_results(y_true, y_preds, names):
     """Plot
-    Plot the true data and predicted data.
-    # Arguments
-        y_true: List/ndarray, ture data.
-        y_pred: List/ndarray, predicted data.
-        names: List, Method names.
-    """
+        Plot the true data and predicted data.
+        # Arguments
+            y_true: List/ndarray, ture data.
+            y_pred: List/ndarray, predicted data.
+            names: List, Method names.
+        """
     d = '2016-3-4 00:00'
     x = pd.date_range(d, periods=96, freq='15min')
 
@@ -90,35 +106,56 @@ def plot_results(y_true, y_preds, names):
     plt.show()
 
 
+def plot_error(mtx):
+    fig = plt.figure(figsize=(7, 5))
+    labels = ["Mape", "EVS", "MAE", "MSE", "RMSE", "R2"]
+    model_names = ['LSTM', 'GRU', 'SAEs']
+
+    return
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scats", default=970, help="SCATS site number.")
+    parser.add_argument("--junction", default=1, help="The approach to the site.")
+    args = parser.parse_args()
 
-    node_index = 10
-    lstm = load_model('model/lstm.h5')
-    gru = load_model('model/gru.h5')
-    saes = load_model('model/saes.h5')
-    models = [lstm, gru, saes]
-    names = ['LSTM', 'GRU', 'SAEs']
+    models = []
+    untrained_models = []
+    model_names = ['LSTM', 'GRU', 'SAEs']
 
-    lag = 12
-    nodes = process_data("data/2006.csv", lag)
+    for name in model_names:
+        file = "model/{0}/{1}/{2}.h5".format(name.lower(), args.scats, args.junction)
 
-    nodes[node_index].y_test = nodes[node_index].scaler.inverse_transform(nodes[node_index].y_test.reshape(-1, 1)).reshape(1, -1)[0]
+        if os.path.exists(file):
+            models.append(load_model(file))
+        else:
+            untrained_models.append(name)
+
+    for name in untrained_models:
+        model_names.remove(name)
+
+    lag = get_setting("train_config")["lag"]
+    _, _, x_test, y_test, scaler = process_data(args.scats, args.junction, lag)
+    y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
     y_preds = []
-    for name, model in zip(names, models):
+    mtx = []
+    for name, model in zip(model_names, models):
         if name == 'SAEs':
-            X_test = np.reshape(nodes[node_index].x_test, (nodes[node_index].x_test.shape[0], nodes[node_index].x_test.shape[1]))
+            x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1]))
         else:
-            X_test = np.reshape(nodes[node_index].x_test, (nodes[node_index].x_test.shape[0], nodes[node_index].x_test.shape[1], 1))
+            x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
         file = 'images/' + name + '.png'
-        # plot_model(model, to_file=file, show_shapes=True)
-        predicted = model.predict(X_test)
-        predicted = nodes[node_index].scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
+        plot_model(model, to_file=file, show_shapes=True)
+        predicted = model.predict(x_test)
+        predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
         y_preds.append(predicted[:96])
         print(name)
-        eva_regress(nodes[node_index].y_test, predicted)
+        mtx.append(eva_regress(y_test, predicted))
 
-    plot_results(nodes[node_index].y_test[: 96], y_preds, names)
+    plot_results(y_test[:96], y_preds, model_names)
+    plot_error(mtx)
 
 
 if __name__ == '__main__':
