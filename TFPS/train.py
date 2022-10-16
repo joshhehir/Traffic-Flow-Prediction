@@ -19,6 +19,16 @@ SCATS_DATA = ScatsData()
 
 
 def train_model(model, x_train, y_train, name, scats, junction, config):
+    """Trains a single model
+    Parameters needed
+        - model: the model to be trained
+        - x_train: the input data for training
+        - y_train: the output or result from training
+        - name: the name of the model
+        - scats: the scats site number
+        - junction: the number that corresponds to the scat site based on the vic roads data
+        - config: values for training found in config.json """
+
     model.compile(loss="mse", optimizer="rmsprop", metrics=['mape'])
     # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
     hist = model.fit(
@@ -41,6 +51,16 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
 
 
 def train_seas(models, x_train, y_train, name, scats, junction, config):
+    """Trains the SAEs model
+    Parameters needed:
+        - model: list type of SAE model to be trained
+        - x_train: the input data for training
+        - y_train: the output or result from training
+        - name: the name of the model
+        - scats: the scats site number
+        - junction: the number that corresponds to the scat site based on the vic roads data
+        - config: values for training found in config.json """
+
     temp = x_train
     # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
     for i in range(len(models) - 1):
@@ -63,6 +83,14 @@ def train_seas(models, x_train, y_train, name, scats, junction, config):
 
 
 def train_with_args(scats, junction, model_to_train):
+    """ Begin training a model with arguments
+
+    Parameters needed:
+        - scats: the scats number
+        - junction: the number that corresponds to the scat site based on the vic roads data
+        - model_to_train: the NN model
+        """
+
     scats_numbers = SCATS_DATA.get_all_scats_numbers()
 
     if scats != "all":

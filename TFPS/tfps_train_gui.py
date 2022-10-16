@@ -8,16 +8,20 @@ SCATS_DATA = ScatsData()
 
 
 class ConsoleStream(QtCore.QObject):
+    """Handles the stdout functions """
     text_output = QtCore.pyqtSignal(str)
 
     def write(self, text):
+        """Writes the console output to the text_edit widget"""
         self.text_output.emit(str(text))
 
     def flush(self):
+        """This function is here to avoid compiler errors"""
         pass
 
 
 class Ui_Train(object):
+    """The GUI for training the models."""
 
     def __init__(self, main):
         self.threads = []
@@ -40,12 +44,14 @@ class Ui_Train(object):
         sys.stdout = ConsoleStream(text_output=self.display_output)
 
     def __del__(self):
+        """Resets the console if the GUI is closed"""
         sys.stdout = sys.__stdout__
 
         for thread in self.threads:
             thread.join()
 
     def display_output(self, text):
+        """Displays the terminal text in the out_textEdit widget"""
         cursor = self.out_textEdit.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
@@ -53,6 +59,7 @@ class Ui_Train(object):
         self.out_textEdit.ensureCursorVisible()
 
     def setup(self):
+        """Sets up the layout and widgets to be used in the GUI"""
         default_font = QtGui.QFont()
         default_font.setFamily("Arial")
         default_font.setPointSize(10)
@@ -115,6 +122,7 @@ class Ui_Train(object):
         self.init_widgets()
 
     def set_text(self, main):
+        """Sets the text for all the buttons and labels"""
         translate = QtCore.QCoreApplication.translate
         main.setWindowTitle(translate("main_window", "Traffic Flow Prediction System - Model Training Program"))
         self.model_label.setText(translate("main_window", "Training Model"))
@@ -123,6 +131,7 @@ class Ui_Train(object):
         self.train_Button.setText(translate("main_window", "Train Model"))
 
     def set_style(self, main):
+        """Sets the style of the GUI, the colors, etc..."""
         main.setStyleSheet("background-color: rgb(140, 140, 140);")
         self.model_comboBox.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.scats_comboBox.setStyleSheet("background-color: rgb(255, 255, 255);")
@@ -131,6 +140,7 @@ class Ui_Train(object):
         self.out_textEdit.setStyleSheet("background-color: rgb(0, 0, 0);\n" "color: rgb(0, 255, 0);")
 
     def scats_number_changed(self):
+        """Updates the junction_comboBox when the scats site is changed"""
         index = self.scats_comboBox.currentIndex()
         value = self.scats_comboBox.itemText(index)
 
@@ -150,6 +160,7 @@ class Ui_Train(object):
             self.junction_comboBox.setEnabled(True)
 
     def train(self):
+        """Passes training parameters"""
         scats_number = self.scats_comboBox.itemText(self.scats_comboBox.currentIndex())
         if scats_number != "All":
             scats_number = int(scats_number)
@@ -161,6 +172,7 @@ class Ui_Train(object):
         train_with_args(scats_number, junction, model)
 
     def train_process(self):
+        """Enables threads for the training GUI"""
         training_threads = []
         t = threading.Thread(target=self.train)
         training_threads.append(t)
@@ -170,6 +182,7 @@ class Ui_Train(object):
             thread.start()
 
     def init_widgets(self):
+        """Initialises the widgets to be used"""
         _translate = QtCore.QCoreApplication.translate
 
         models = ["LSTM", "GRU", "SAEs"]

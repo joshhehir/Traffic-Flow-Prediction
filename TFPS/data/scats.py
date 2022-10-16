@@ -7,12 +7,16 @@ import pandas as pd
 
 
 def format_date(column):
+    """Formats a column of dates into the d/m/Y format with caching to increase performance"""
+
     dates = {date: datetime.strftime(datetime(*xlrd.xldate_as_tuple(
         date, 0)), "%d/%m/%Y") for date in column}
     return column.map(dates)
 
 
 def convert_to_csv(input_name, output_name):
+    """Converts the VicRoads 2006 spreadsheet into a CSV"""
+
     spreadsheet = xlrd.open_workbook(input_name).sheet_by_index(1)
 
     file = open(output_name, "wb")
@@ -25,6 +29,8 @@ def convert_to_csv(input_name, output_name):
 
 
 class ScatsData(object):
+    """ Stores all of the VicRoads 2006 data and allows for retrieval of the data"""
+
     DATA_SOURCE = "data/Scats Data October 2006.xls"
     CSV_FILE = "data/2006.csv"
 
@@ -40,6 +46,8 @@ class ScatsData(object):
         return self
 
     def get_scats_volume(self, scats_number, location):
+        """Retrieves the volume at a location over the time period"""
+
         raw_data = self.data.loc[(self.data[0] == scats_number) & (self.data[7] == location)]
 
         volume_data = []
@@ -50,27 +58,39 @@ class ScatsData(object):
         return np.array(volume_data)
 
     def get_all_scats_numbers(self):
+        """Gets all the scats site numbers"""
+
         return self.data[0].unique()
 
     def count(self):
+        """Counts the number of rows"""
+
         return len(self.data.index)
 
     def get_location_name(self, scats_number, location):
+        """Retrieves the name of the location from the VicRoads ID"""
+
         raw_data = self.data.loc[(self.data[0] == scats_number) & (self.data[7] == location)]
 
         return raw_data.iloc[0][1]
 
     def get_location_id(self, location_name):
+        """Retrieves the location ID based on the name"""
+
         raw_data = self.data.loc[self.data[1] == location_name]
 
         return raw_data.iloc[0][7]
 
     def get_scats_approaches(self, scats_number):
+        """Retrieves all the locations a vehicle can approach the site from"""
+
         raw_data = self.data.loc[self.data[0] == scats_number]
 
         return [int(location) for location in raw_data[7].unique()]
 
     def get_positional_data(self, scats_number, location):
+        """Retrieves the long and lat of a location"""
+        
         raw_data = self.data.loc[(self.data[0] == scats_number) & (self.data[7] == location)]
 
         return raw_data[3].loc[0], raw_data[4].loc[0]

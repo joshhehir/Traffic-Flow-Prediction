@@ -12,6 +12,7 @@ SCATS_DATA = ScatsData()
 
 
 def format_time_to_index(time):
+    """Converts time into an index for use"""
     time_places = time.split(":")
     hours = int(time_places[0])
     minutes = int(time_places[1])
@@ -21,16 +22,33 @@ def format_time_to_index(time):
 
 
 def format_time(index):
+    """Converts an indexed time value into a string"""
     return strftime("%H:%M", gmtime(index * 15 * 60))
 
 
 def format_date(date):
+    """Converts a date into the correct format"""
     return pd.datetime.strftime(date, "%d/%m/%Y")
 
 
 def process_data(scats_number, junction, lags):
+    """Process data
+        Reshape the vicroads data into a better format
+        # Arguments
+            scats_number: integer, the scats site number
+            junction: integer, the number that corresponds to the scat site based on the vic roads data
+            lags: integer, time lag.
+        # Returns
+            x_train: array.
+            y_train: array.
+            x_test: array.
+            y_test: array.
+            scaler: StandardScaler.
+        """
     volume_data = SCATS_DATA.get_scats_volume(scats_number, junction)
+    """Training using the data from the first 3 weeks"""
     volume_training = volume_data[:2016]
+    """Testing using the remaining days in the month"""
     volume_testing = volume_data[2016:]
 
     # scaler = StandardScaler().fit(volume.values)
@@ -47,11 +65,16 @@ def process_data(scats_number, junction, lags):
     train = np.array(train)
     test = np.array(test)
 
+    """Randomises the training data"""
     np.random.shuffle(train)
 
+    """Training data"""
     x_train = train[:, :-1]
+    """Training Labels"""
     y_train = train[:, -1]
+    """Testing data"""
     x_test = test[:, :-1]
+    """testing labels"""
     y_test = test[:, -1]
 
     return x_train, y_train, x_test, y_test, scaler

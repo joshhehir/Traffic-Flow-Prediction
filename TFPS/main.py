@@ -4,7 +4,6 @@ Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU).
 import argparse
 import math
 import os
-import sys
 import warnings
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -107,6 +106,7 @@ def plot_results(y_true, y_preds, names):
 
 
 def plot_error(mtx):
+    """Plot errors per model"""
     fig = plt.figure(figsize=(7, 5))
     labels = ["Mape", "EVS", "MAE", "MSE", "RMSE", "R2"]
     model_names = ['LSTM', 'GRU', 'SAEs']
