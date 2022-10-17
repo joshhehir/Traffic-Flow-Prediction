@@ -170,26 +170,32 @@ class Graph(object):
 	def __init__(self):
 		self.nodes = []
 
-	def get_path(self, origin, destination):
+	def get_path(self, origin, destination, restrictions):
 		path = [(self.get_node(origin), self.get_node(origin).incoming_connections[0])]
-		path = self.find_next_best_node(path, self.get_node(destination), 0)
-		return path
+		path, restrictions = self.find_next_best_node(path, self.get_node(destination), 0, restrictions)
+		return path, restrictions
 
-	def find_next_best_node(self, path, destination, index):
-		print(len(path[index][0].outgoing_connections))
+	def find_next_best_node(self, path, destination, index, restrictions):
+		#print(len(path[index][0].outgoing_connections))
+		restrictions.append([])
 		for connection in path[index][0].outgoing_connections:
 			if connection.node == destination:
-				print("found destination")
+				#print("found destination")
 				path.append((connection.node, connection))
-				return path
+				restrictions[index].append(path[index][0])
+				return path, restrictions
 			elif distance(connection.node.coordinates, destination.coordinates) < distance(path[index][0].coordinates, destination.coordinates):
-				print("found node {0} closer to destination".format(connection.node.scats_number))
+				
+				#print("found node {0} closer to destination".format(connection.node.scats_number))
+				try:
+					if connection.node in restrictions[index+1]:
+						#print("node restricted")
+						return path, restrictions
+				except:
+					pass
 				path.append((connection.node, connection))
-				return self.find_next_best_node(path, destination, index+1)
-			else:
-				print("no node closer")
-		print("fail")
-		return path
+				return self.find_next_best_node(path, destination, index+1, restrictions)
+		return path, restrictions
 
 	def add_node(self, node):
 		self.nodes.append(node)
@@ -197,7 +203,12 @@ class Graph(object):
 	def get_node(self, scats_number):
 		return next(x for x in self.nodes if x.scats_number == scats_number)
 
-
+def show_graph():
+	for node in graph.nodes:
+		print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0], node.incoming_connections[0].streets[1]))
+		for connection in node.outgoing_connections:
+			print("\t{0} - {1} {2}".format(connection.node.scats_number, connection.streets[0], connection.streets[1]))
+		print("\n")
 
 def main():
 	graph = Graph()
@@ -213,15 +224,24 @@ def main():
 		node.find_outgoing_connections(graph)
 	print("\n\n\n")
 
-	for node in graph.nodes:
-		print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0], node.incoming_connections[0].streets[1]))
-		for connection in node.outgoing_connections:
-			print("\t{0} - {1} {2}".format(connection.node.scats_number, connection.streets[0], connection.streets[1]))
-		print("\n")
+	#show_graph()
 
-	path = graph.get_path(4324, 4262)
-	for i, j in path:
-		print("{0} - {1} {2}".format(i.scats_number, j.streets[0], j.streets[1]))
+	restrictions = []
+	paths = []
+	min_path_count = 5
+	origin = 4324
+	destination = 4262 
+	for x in range(min_path_count):
+		path, restrictions = graph.get_path(origin, destination, restrictions)
+		if (path[-1][0].scats_number != destination):
+			print("\nNo more alternative paths.")
+			return
+		paths.append(path)
+		print("=====")
+		for i, j in path:
+			print("{0} - {1} {2}".format(i.scats_number, j.streets[0], j.streets[1]))
+
+
 
 if __name__ == '__main__':
 	main()
