@@ -152,7 +152,7 @@ class UiRouting(object):
         self.predict_push_button.setEnabled(False)
 
         # Adds functionality to the controls
-        # self.predict_push_button.clicked.connect(self.predict)
+        self.predict_push_button.clicked.connect(self.route_process)
         self.origin_scats_number_combo_box.currentIndexChanged.connect(self.scats_number_changed)
         self.destination_scats_number_combo_box.currentIndexChanged.connect(self.scats_number_changed)
 
@@ -176,6 +176,29 @@ class UiRouting(object):
 
         self.predict_push_button.setEnabled(
             origin_scats_combo_value != "" and destination_scats_combo_value != "")
+
+    def route(self):
+        """Passes routing parameters"""
+        origin_scats_number = self.origin_scats_number_combo_box.itemText(self.origin_scats_number_combo_box.currentIndex())
+        if origin_scats_number != "":
+            origin_scats_number = int(origin_scats_number)
+
+        destination_scats_number = self.destination_scats_number_combo_box.itemText(
+            self.destination_scats_number_combo_box.currentIndex())
+        if destination_scats_number != "":
+            destination_scats_number = int(destination_scats_number)
+
+        # train_with_args(scats_number, junction, model)
+
+    def route_process(self):
+        """Enables threads for the training GUI"""
+        training_threads = []
+        t = threading.Thread(target=self.route)
+        training_threads.append(t)
+        self.threads.append(t)
+
+        for thread in training_threads:
+            thread.start()
 
 
 if __name__ == "__main__":
