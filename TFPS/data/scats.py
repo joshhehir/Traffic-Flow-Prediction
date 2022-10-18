@@ -69,9 +69,7 @@ class ScatsData(object):
 
     def get_location_name(self, scats_number, location):
         """Retrieves the name of the location from the VicRoads ID"""
-
         raw_data = self.data.loc[(self.data[0] == scats_number) & (self.data[7] == location)]
-
         return raw_data.iloc[0][1]
 
     def get_location_id(self, location_name):
@@ -83,7 +81,11 @@ class ScatsData(object):
 
     def get_scats_approaches(self, scats_number):
         """Retrieves all the locations a vehicle can approach the site from"""
+        raw_data = self.data.loc[self.data[0] == scats_number]
+        return [int(location) for location in raw_data[7].unique()]
 
+    def get_scats_approaches_names(self, scats_number):
+        """Retrieves all the locations a vehicle can approach the site from"""
         raw_data = self.data.loc[self.data[0] == scats_number]
         return raw_data[1].unique()
 

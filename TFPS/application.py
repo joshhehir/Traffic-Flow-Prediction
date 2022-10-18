@@ -107,32 +107,16 @@ class Node(object):
         valid_connections = []
         for node in graph.nodes:
             for external_connection in node.incoming_connections:
-                if external_connection.streets[0] in connection.streets or external_connection.streets[
-                    1] in connection.streets:
-                    if external_connection.streets[0] in connection.streets and external_connection.streets[
-                        1] in connection.streets:
-                        # print("{0} and {1} present in connection".format(external_connection.streets[0],
-                        # external_connection.streets[1]))
-                        None
-                    else:
+                if external_connection.streets[0] in connection.streets or external_connection.streets[1] in connection.streets:
+                    if not(external_connection.streets[0] in connection.streets and external_connection.streets[1] in connection.streets):
                         vector_a = convert_cardinality_to_vector(connection.cardinality)
                         vector_b = tuple(
                             map(lambda i, j: i - j, external_connection.node.coordinates, connection.node.coordinates))
-                        # print ("{0}\nCardinality: {1}. Direction: {2}".format(external_connection.streets, vector_a, vector_b))
                         if angle_of_vectors(vector_a[1], vector_a[0], vector_b[0], vector_b[1]) < 45:
                             valid_connections.append(external_connection)
 
-        print("Node: {0}\nIncoming Connection: {1} {2} {3}\nValid Connections:".format(self.scats_number,
-                                                                                       connection.streets[0],
-                                                                                       connection.cardinality,
-                                                                                       connection.streets[1]))
         best_connection = None
         for external_connection in valid_connections:
-            print(
-                "\t{0} {1} {2}. Distance = {3}".format(external_connection.streets[0], external_connection.cardinality,
-                                                       external_connection.streets[1],
-                                                       distance(connection.node.coordinates,
-                                                                external_connection.node.coordinates)))
             if best_connection == None:
                 best_connection = external_connection
             elif (distance(connection.node.coordinates, external_connection.node.coordinates) < distance(
@@ -143,14 +127,6 @@ class Node(object):
                 if abs(get_inverse_cardinality(connection.cardinality) - external_connection.cardinality) < abs(
                         get_inverse_cardinality(connection.cardinality) - best_connection.cardinality):
                     best_connection = external_connection
-        if best_connection != None:
-            print("Best Connection = {0} {1} {2}. Distance = {3}\n".format(best_connection.streets[0],
-                                                                           best_connection.cardinality,
-                                                                           best_connection.streets[1],
-                                                                           distance(connection.node.coordinates,
-                                                                                    best_connection.node.coordinates)))
-        else:
-            print("\tThere are no connections for this node")
         return best_connection
 
     def add_outgoing_connection(self, connection):
@@ -256,7 +232,7 @@ def get_graph():
     for scats in SCATS_DATA.get_all_scats_numbers():
         coordinates = SCATS_DATA.get_positional_data(scats)
         node = Node(scats, coordinates)
-        for approach in SCATS_DATA.get_scats_approaches(scats):
+        for approach in SCATS_DATA.get_scats_approaches_names(scats):
             node.add_incoming_connection(Connection(approach, node))
         graph.add_node(node)
 
