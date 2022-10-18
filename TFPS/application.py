@@ -50,21 +50,21 @@ def get_cardinality_from_name(name):
 
 def convert_cardinality_to_vector(cardinality):
     if cardinality == 0:
-        return (0, 1)
+        return 0, 1
     elif cardinality == 1:
-        return (1, 1)
+        return 1, 1
     elif cardinality == 2:
-        return (1, 0)
+        return 1, 0
     elif cardinality == 3:
-        return (1, -1)
+        return 1, -1
     elif cardinality == 4:
-        return (0, -1)
+        return 0, -1
     elif cardinality == 5:
-        return (-1, -1)
+        return -1, -1
     elif cardinality == 6:
-        return (-1, 0)
+        return -1, 0
     elif cardinality == 7:
-        return (-1, 1)
+        return -1, 1
 
 
 def get_inverse_cardinality(cardinality):
@@ -99,16 +99,17 @@ class Node(object):
                 self.outgoing_connections.append(connection)
 
     def get_respective_outgoing_connection(self, connection, graph):
-        """
-		1. get connections of connected nodes
-		2. get nodes in direction of cardinality
-		3. get closest node
-		"""
+        """1. get connections of connected nodes
+        2. get nodes in direction of cardinality
+        3. get closest node """
+
         valid_connections = []
         for node in graph.nodes:
             for external_connection in node.incoming_connections:
-                if external_connection.streets[0] in connection.streets or external_connection.streets[1] in connection.streets:
-                    if not(external_connection.streets[0] in connection.streets and external_connection.streets[1] in connection.streets):
+                if external_connection.streets[0] in connection.streets or external_connection.streets[
+                    1] in connection.streets:
+                    if not (external_connection.streets[0] in connection.streets and external_connection.streets[
+                        1] in connection.streets):
                         vector_a = convert_cardinality_to_vector(connection.cardinality)
                         vector_b = tuple(
                             map(lambda i, j: i - j, external_connection.node.coordinates, connection.node.coordinates))
@@ -217,7 +218,7 @@ class Graph(object):
         restrictions = []
         for x in range(min_path_count):
             path, restrictions = self.get_path(origin, destination, restrictions)
-            if (path[-1][0].scats_number != destination):
+            if path[-1][0].scats_number != destination:
                 print("\nNo more alternative paths.")
                 return
             paths.append(path)

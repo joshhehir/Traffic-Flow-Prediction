@@ -1,21 +1,9 @@
-import os
 import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 from data.scats import ScatsData
-from application import Graph
 from application import get_graph
 
 SCATS_DATA = ScatsData()
-
-default_font = QtGui.QFont()
-default_font.setFamily("Arial")
-default_font.setPointSize(10)
-
-label_font = QtGui.QFont()
-label_font.setFamily("Arial")
-label_font.setPointSize(10)
-label_font.setBold(True)
-label_font.setWeight(75)
 
 
 class ConsoleStream(QtCore.QObject):
@@ -45,29 +33,14 @@ class UiRouting(object):
         self.origin_scats_number_label = QtWidgets.QLabel(self.main_widget)
         self.destination_scats_number_combo_box = QtWidgets.QComboBox(self.main_widget)
         self.destination_scats_number_label = QtWidgets.QLabel(self.main_widget)
-        self.date_input = QtWidgets.QDateTimeEdit(self.main_widget)
-        self.date_input_label = QtWidgets.QLabel(self.main_widget)
+        self.time_input = QtWidgets.QTimeEdit(self.main_widget)
+        self.time_input_label = QtWidgets.QLabel(self.main_widget)
         self.settings_layout = QtWidgets.QFormLayout()
         self.vertical_layout = QtWidgets.QVBoxLayout(self.main_widget)
-        self.date_time_layout = QtWidgets.QFormLayout()
+        self.time_layout = QtWidgets.QFormLayout()
         self.out_textEdit = QtWidgets.QPlainTextEdit(self.main_widget)
 
         sys.stdout = ConsoleStream(text_output=self.display_output)
-
-        self.main.setObjectName("main_window")
-        self.main_widget.setObjectName("main_widget")
-        self.vertical_layout.setObjectName("vertical_layout")
-        self.settings_layout.setObjectName("settings_layout")
-        self.date_input.setObjectName("date_input")
-        self.date_input_label.setObjectName("date_input_label")
-        self.origin_scats_number_label.setObjectName("origin_scats_number_label")
-        self.origin_scats_number_combo_box.setObjectName("origin_scats_number_combo_box")
-        self.destination_scats_number_label.setObjectName("destination_scats_number_label")
-        self.destination_scats_number_combo_box.setObjectName("destination_scats_number_combo_box")
-        self.predict_push_button.setObjectName("predict_push_button")
-        self.date_time_layout.setObjectName("date_time_layout")
-        self.out_textEdit.setReadOnly(True)
-        self.out_textEdit.setObjectName("out_textEdit")
 
     def __del__(self):
         for thread in self.threads:
@@ -83,52 +56,77 @@ class UiRouting(object):
 
     def setup(self):
         """Sets up the layout and widgets to be used in the GUI"""
-        self.set_text(main_window)
-        self.set_style(main_window)
-        QtCore.QMetaObject.connectSlotsByName(main_window)
-        self.init_layouts()
-        self.init_widgets()
+        default_font = QtGui.QFont()
+        default_font.setFamily("Arial")
+        default_font.setPointSize(10)
 
-    def init_layouts(self):
-        """Creates the layouts for the widgets"""
+        label_font = QtGui.QFont()
+        label_font.setFamily("Arial")
+        label_font.setPointSize(10)
+        label_font.setBold(True)
+        label_font.setWeight(75)
+
         # Main window setup
-        main_window.setCentralWidget(self.main_widget)
+        self.main.setObjectName("main_window")
         self.main.resize(1200, 800)
+        self.main_widget.setObjectName("main_widget")
+
+        self.vertical_layout.setObjectName("vertical_layout")
+        self.settings_layout.setObjectName("settings_layout")
+
+        self.origin_scats_number_label.setFont(default_font)
+        self.origin_scats_number_label.setObjectName("origin_scats_number_label")
+        self.settings_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.origin_scats_number_label)
+
+        self.origin_scats_number_combo_box.setFont(default_font)
+        self.origin_scats_number_combo_box.setObjectName("origin_scats_number_combo_box")
+        self.settings_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.origin_scats_number_combo_box)
+
+        self.destination_scats_number_label.setFont(default_font)
+        self.destination_scats_number_label.setObjectName("destination_scats_number_label")
+        self.settings_layout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.destination_scats_number_label)
+
+        self.destination_scats_number_combo_box.setFont(default_font)
+        self.destination_scats_number_combo_box.setObjectName("destination_scats_number_combo_box")
+        self.settings_layout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.destination_scats_number_combo_box)
+
+        self.time_input.setFont(default_font)
+        self.time_input.setObjectName("time_input")
+        self.time_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.time_input)
+
+        self.time_input_label.setFont(default_font)
+        self.time_input_label.setObjectName("time_input_label")
+        self.time_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.time_input_label)
+
+        self.predict_push_button.setFont(default_font)
+        self.predict_push_button.setObjectName("predict_push_button")
+
+        self.out_textEdit.setFont(default_font)
+        self.out_textEdit.setReadOnly(True)
+        self.out_textEdit.setObjectName("out_textEdit")
+
+        self.time_layout.setObjectName("time_layout")
 
         # Vertical layout setup
         self.vertical_layout.addLayout(self.settings_layout)
-        self.vertical_layout.addLayout(self.date_time_layout)
+        self.vertical_layout.addLayout(self.time_layout)
         self.vertical_layout.addWidget(self.predict_push_button)
         self.vertical_layout.addWidget(self.out_textEdit)
 
-        self.date_time_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.date_input_label)
-        self.date_time_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.date_input)
+        main_window.setCentralWidget(self.main_widget)
 
-        # Settings layout setup
-        self.settings_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.origin_scats_number_label)
-        self.settings_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.origin_scats_number_combo_box)
-        self.settings_layout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.destination_scats_number_label)
-        self.settings_layout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.destination_scats_number_combo_box)
+        self.set_text(main_window)
+        self.set_style(main_window)
+        QtCore.QMetaObject.connectSlotsByName(main_window)
+        self.init_widgets()
 
     def set_text(self, main):
         """Sets the text for all the buttons and labels"""
         translate = QtCore.QCoreApplication.translate
         main.setWindowTitle(translate("main_window", "Traffic Flow Prediction System - Routing Program"))
-
-        self.origin_scats_number_label.setFont(default_font)
-        self.origin_scats_number_combo_box.setFont(default_font)
-        self.destination_scats_number_label.setFont(default_font)
-        self.destination_scats_number_combo_box.setFont(default_font)
-        self.date_input.setFont(default_font)
-        self.date_input_label.setFont(default_font)
-        self.predict_push_button.setFont(default_font)
-        self.out_textEdit.setFont(default_font)
-
-        translate = QtCore.QCoreApplication.translate
-
         self.origin_scats_number_label.setText(translate("main_window", "Origin Scats Number"))
         self.destination_scats_number_label.setText(translate("main_window", "Destination Scats Number"))
-        self.date_input_label.setText(translate("main_window", "Date/Time"))
+        self.time_input_label.setText(translate("main_window", "Time"))
         self.predict_push_button.setText(translate("main_window", "Predict Route"))
 
     def set_style(self, main):
@@ -136,7 +134,7 @@ class UiRouting(object):
         main.setStyleSheet("background-color: rgb(140, 140, 140);")
         self.origin_scats_number_combo_box.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.destination_scats_number_combo_box.setStyleSheet("background-color: rgb(255, 255, 255);")
-        self.date_input.setStyleSheet("background-color: rgb(255, 255, 255);")
+        self.time_input.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.predict_push_button.setStyleSheet("background-color: rgb(158, 255, 166);")
         self.out_textEdit.setStyleSheet("background-color: rgb(0, 0, 0);\n" "color: rgb(0, 255, 0);")
 
