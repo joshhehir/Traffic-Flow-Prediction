@@ -185,7 +185,7 @@ class UiTrain(object):
         """Initialises the widgets to be used"""
         _translate = QtCore.QCoreApplication.translate
 
-        models = ["LSTM", "GRU", "SAEs","SRNN"]
+        models = ["LSTM", "GRU", "SAEs", "SRNN"]
         for model in models:
             self.model_comboBox.addItem(model)
 

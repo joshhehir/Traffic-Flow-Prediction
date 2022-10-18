@@ -92,4 +92,4 @@ class ScatsData(object):
     def get_positional_data(self, scats_number):
         """Retrieves the long and lat of a location"""
         raw_data = self.data.loc[(self.data[0] == scats_number)]
-        return raw_data.at[raw_data.first_valid_index(),3], raw_data.at[raw_data.first_valid_index(),4]
+        return raw_data.at[raw_data.first_valid_index(), 3], raw_data.at[raw_data.first_valid_index(), 4]

@@ -109,7 +109,7 @@ def plot_error(mtx):
     """Plot errors per model"""
     fig = plt.figure(figsize=(7, 5))
     labels = ["Mape", "EVS", "MAE", "MSE", "RMSE", "R2"]
-    model_names = ['LSTM', 'GRU', 'SAEs', 'SimpleRNN']
+    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
 
     return
 
@@ -122,7 +122,7 @@ def main():
 
     models = []
     untrained_models = []
-    model_names = ['LSTM', 'GRU', 'SAEs','SRNN']
+    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
 
     for name in model_names:
         file = "model/{0}/{1}/{2}.h5".format(name.lower(), args.scats, args.junction)
