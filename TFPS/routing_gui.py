@@ -2,6 +2,8 @@ import os
 import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 from data.scats import ScatsData
+from application import Graph
+from application import get_graph
 
 SCATS_DATA = ScatsData()
 
@@ -91,7 +93,7 @@ class UiRouting(object):
         """Creates the layouts for the widgets"""
         # Main window setup
         main_window.setCentralWidget(self.main_widget)
-        self.main.resize(800, 450)
+        self.main.resize(1200, 800)
 
         # Vertical layout setup
         self.vertical_layout.addLayout(self.settings_layout)
@@ -188,7 +190,9 @@ class UiRouting(object):
         if destination_scats_number != "":
             destination_scats_number = int(destination_scats_number)
 
-        # train_with_args(scats_number, junction, model)
+        routes = 5
+        graph = get_graph()
+        graph.get_paths(origin_scats_number, destination_scats_number, routes)
 
     def route_process(self):
         """Enables threads for the training GUI"""
