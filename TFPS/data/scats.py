@@ -85,12 +85,9 @@ class ScatsData(object):
         """Retrieves all the locations a vehicle can approach the site from"""
 
         raw_data = self.data.loc[self.data[0] == scats_number]
+        return raw_data[1].unique()
 
-        return [int(location) for location in raw_data[7].unique()]
-
-    def get_positional_data(self, scats_number, location):
+    def get_positional_data(self, scats_number):
         """Retrieves the long and lat of a location"""
-        
-        raw_data = self.data.loc[(self.data[0] == scats_number) & (self.data[7] == location)]
-
-        return raw_data[3].loc[0], raw_data[4].loc[0]
+        raw_data = self.data.loc[(self.data[0] == scats_number)]
+        return raw_data.at[raw_data.first_valid_index(),3], raw_data.at[raw_data.first_valid_index(),4]

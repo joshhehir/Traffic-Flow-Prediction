@@ -20,7 +20,7 @@ class ConsoleStream(QtCore.QObject):
         pass
 
 
-class Ui_Train(object):
+class UiTrain(object):
     """The GUI for training the models."""
 
     def __init__(self, main):
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     main_window = QtWidgets.QMainWindow()
-    ui = Ui_Train(main_window)
+    ui = UiTrain(main_window)
     ui.setup()
     main_window.show()
     sys.exit(app.exec_())
