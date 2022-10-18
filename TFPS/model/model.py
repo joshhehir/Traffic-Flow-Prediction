@@ -1,7 +1,7 @@
 """
 Defination of NN model
 """
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN
 from keras.models import Sequential
 
 
@@ -86,3 +86,44 @@ def get_saes(layers):
     models = [sae1, sae2, sae3, saes]
 
     return models
+
+"""tf.keras.layers.SimpleRNN(
+    units,
+    activation="tanh",
+    use_bias=True,
+    kernel_initializer="glorot_uniform",
+    recurrent_initializer="orthogonal",
+    bias_initializer="zeros",
+    kernel_regularizer=None,
+    recurrent_regularizer=None,
+    bias_regularizer=None,
+    activity_regularizer=None,
+    kernel_constraint=None,
+    recurrent_constraint=None,
+    bias_constraint=None,
+    dropout=0.0,
+    recurrent_dropout=0.0,
+    return_sequences=False,
+    return_state=False,
+    go_backwards=False,
+    stateful=False,
+    unroll=False,
+    **kwargs
+)"""
+
+
+def get_srnn(units):
+    """LSTM(Long Short-Term Memory)
+    Build LSTM Model.
+    # Arguments
+        units: List(int), number of input, output and hidden units.
+    # Returns
+        model: Model, nn model.
+    """
+    model = Sequential()
+    model.add(SimpleRNN(units[1], input_shape=(units[0], 1), return_sequences=True))
+    model.add(SimpleRNN(units[2]))
+    model.add(Dropout(0.2))
+    model.add(Dense(units[3], activation='sigmoid'))
+
+    return model
