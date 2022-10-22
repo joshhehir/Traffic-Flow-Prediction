@@ -5,6 +5,7 @@ import sys
 import warnings
 import argparse
 import os
+import json
 import numpy as np
 import pandas as pd
 from data.data import process_data
@@ -106,7 +107,7 @@ def train_with_args(scats, junction, model_to_train):
         for junction in junctions:
             print("training {0} : {1} - {2}".format(model_to_train, scats_site, junction))
             try:
-                x_train, y_train, _, _, _ = process_data(scats_site, junction, config["lag"])
+                x_train, y_train, x_test, y_test, scaler = process_data(scats_site, junction, config["lag"])
 
                 if model_to_train == 'lstm':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
@@ -124,8 +125,35 @@ def train_with_args(scats, junction, model_to_train):
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
                     m = model.get_srnn([12, 64, 64, 1])
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
+
+
+                predicted = m.predict(x_test)
+                predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
+                with open('predictedvalues.json', 'r') as openfile:
+ 
+                    # Reading from json file
+                    json_object = json.load(openfile)
+                scats_site = str(scats_site)
+                junction = str(junction)
+                try:
+                    print(json_object[model_to_train])
+                except:
+                    json_object[model_to_train] = {}
+                try:
+                    print(json_object[model_to_train][scats_site])
+                except:
+                    json_object[model_to_train][scats_site] = {}
+                json_object[model_to_train][scats_site][junction] = predicted.tolist()
+                json_object = json.dumps(json_object, indent=4)
+                with open("predictedvalues.json", "w") as outfile:
+                    outfile.write(json_object)
             except:
                 print("Could not create model for {0} : {1} - {2}".format(model_to_train, scats_site, junction))
+
+
+                
+
+            
 
 def main(argv):
     parser = argparse.ArgumentParser()

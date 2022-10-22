@@ -1,5 +1,6 @@
 from data.scats import ScatsData
 import math
+import json
 import numpy as np
 from keras.models import load_model
 
@@ -157,7 +158,11 @@ class Connection(object):
         models = {}
         for model_name in model_names:
             try:
-                models[model_name] = (load_model("model/{0}/{1}/{2}.h5".format(model_name, self.node.scats_number, name)))
+                with open('predictedvalues.json', 'r') as openfile:
+ 
+                    # Reading from json file
+                    json_object = json.load(openfile)
+                models[model_name] = json_object[model_name][str(self.node.scats_number)][str(name)]
             except Exception as e:
             	print("{0} model for junction {1} could not be found!".format(model_name, name))
         return models
@@ -226,8 +231,7 @@ class Graph(object):
             print("=====")
             total_cost = 0
             for i, j in path:
-            	print(j.models[model].predict(time))
-            	#print("{0} - {1} {2}. Cost: {3}".format(i.scats_number, j.streets[0], j.streets[1], j.models[model]))
+            	print("{0} - {1} {2}. Cost: {3}".format(i.scats_number, j.streets[0], j.streets[1], j.models[model][time]))
 
 
 
