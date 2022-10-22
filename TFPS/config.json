@@ -2,7 +2,7 @@
   "train_config": {
     "lag": 12,
     "batch": 256,
-    "epochs": 6
+    "epochs": 600
   },
   "model": "LSTM"
 }
