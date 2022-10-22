@@ -104,25 +104,28 @@ def train_with_args(scats, junction, model_to_train):
 
         config = get_setting("train_config")
         for junction in junctions:
-            x_train, y_train, _, _, _ = process_data(scats_site, junction, config["lag"])
+            print("training {0} : {1} - {2}".format(model_to_train, scats_site, junction))
+            try:
+                x_train, y_train, _, _, _ = process_data(scats_site, junction, config["lag"])
 
-            if model_to_train == 'lstm':
-                x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-                m = model.get_lstm([12, 64, 64, 1])
-                train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
-            if model_to_train == 'gru':
-                x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-                m = model.get_gru([12, 64, 64, 1])
-                train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
-            if model_to_train == 'saes':
-                x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
-                m = model.get_saes([12, 400, 400, 400, 1])
-                train_seas(m, x_train, y_train, model_to_train, scats_site, junction, config)
-            if model_to_train == 'srnn':
-                x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-                m = model.get_srnn([12, 64, 64, 1])
-                train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
-
+                if model_to_train == 'lstm':
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+                    m = model.get_lstm([12, 64, 64, 1])
+                    train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
+                if model_to_train == 'gru':
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+                    m = model.get_gru([12, 64, 64, 1])
+                    train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
+                if model_to_train == 'saes':
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
+                    m = model.get_saes([12, 400, 400, 400, 1])
+                    train_seas(m, x_train, y_train, model_to_train, scats_site, junction, config)
+                if model_to_train == 'srnn':
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+                    m = model.get_srnn([12, 64, 64, 1])
+                    train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
+            except:
+                print("Could not create model for {0} : {1} - {2}".format(model_to_train, scats_site, junction))
 
 def main(argv):
     parser = argparse.ArgumentParser()

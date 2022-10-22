@@ -77,7 +77,7 @@ class ScatsData(object):
 
         raw_data = self.data.loc[self.data[1] == location_name]
 
-        return raw_data.iloc[0][7]
+        return int(raw_data.iloc[0][7])
 
     def get_scats_approaches(self, scats_number):
         """Retrieves all the locations a vehicle can approach the site from"""

@@ -1,6 +1,7 @@
 from data.scats import ScatsData
 import math
 import numpy as np
+from keras.models import load_model
 
 SCATS_DATA = ScatsData()
 
@@ -150,15 +151,15 @@ class Connection(object):
         self.node = node
         self.streets = get_streets_from_name(name)
         self.cardinality = get_cardinality_from_name(name)
-        self.models = {}
+        self.models = self.load_models(SCATS_DATA.get_location_id(name), ["gru"])
 
     def load_models(self, name, model_names):
         models = {}
         for model_name in model_names:
             try:
-                models[model_name] = ("model/{0}/{1}/{2}.h5".format(model_name, self.node.scats_number, name))
+                models[model_name] = (load_model("model/{0}/{1}/{2}.h5".format(model_name, self.node.scats_number, name)))
             except Exception as e:
-                print("{0} model for junction {1} could not be found!".format(model_name, name))
+            	print("{0} model for junction {1} could not be found!".format(model_name, name))
         return models
 
     def contains_street(self, street_name):
@@ -213,7 +214,7 @@ class Graph(object):
                                                connection.streets[1]))
             print("\n")
 
-    def get_paths(self, origin, destination, min_path_count):
+    def get_paths(self, origin, destination, min_path_count, model, time):
         paths = []
         restrictions = []
         for x in range(min_path_count):
@@ -223,8 +224,11 @@ class Graph(object):
                 return
             paths.append(path)
             print("=====")
+            total_cost = 0
             for i, j in path:
-                print("{0} - {1} {2}".format(i.scats_number, j.streets[0], j.streets[1]))
+            	print(j.models[model].predict(time))
+            	#print("{0} - {1} {2}. Cost: {3}".format(i.scats_number, j.streets[0], j.streets[1], j.models[model]))
+
 
 
 def get_graph():
@@ -233,8 +237,9 @@ def get_graph():
     for scats in SCATS_DATA.get_all_scats_numbers():
         coordinates = SCATS_DATA.get_positional_data(scats)
         node = Node(scats, coordinates)
+        print("adding connections for {0}".format(scats))
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
-            node.add_incoming_connection(Connection(approach, node))
+        	node.add_incoming_connection(Connection(approach, node))
         graph.add_node(node)
 
     for node in graph.nodes:
@@ -244,7 +249,7 @@ def get_graph():
 
 def main():
     graph = get_graph()
-    graph.get_paths(4030, 4040, 5)
+    graph.get_paths(4030, 4040, 5, "gru", 0)
 
 
 if __name__ == '__main__':
