@@ -89,8 +89,8 @@ def get_saes(layers):
 
 
 def get_srnn(units):
-    """LSTM(Long Short-Term Memory)
-    Build LSTM Model.
+    """SRNN(Simple recurrent neural network)
+    Build SRNN Model.
     # Arguments
         units: List(int), number of input, output and hidden units.
     # Returns
