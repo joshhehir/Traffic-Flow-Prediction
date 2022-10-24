@@ -1,6 +1,9 @@
+import argparse
 import threading
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from TFPS.main import train_all_of_model
 from data.scats import ScatsData
 from train import train_with_args
 
@@ -168,6 +171,12 @@ class UiTrain(object):
         if junction != "All":
             junction = int(SCATS_DATA.get_location_id(junction))
         model = self.model_comboBox.itemText(self.model_comboBox.currentIndex()).lower()
+
+        if scats_number == "All":
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--model", default=model, help="Model to train.")
+            args = parser.parse_args()
+            train_all_of_model(args.model)
 
         train_with_args(scats_number, junction, model)
 
