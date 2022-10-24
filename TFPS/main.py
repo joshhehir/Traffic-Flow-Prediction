@@ -159,14 +159,17 @@ def main():
     plot_results(y_test[:96], y_preds, model_names)
     plot_error(mtx)
 
+
 def train_all_of_model(model):
     SCATS_DATA = ScatsData()
     for scats_number in SCATS_DATA.get_all_scats_numbers():
         for approach in SCATS_DATA.get_scats_approaches(scats_number):
             train_with_args(scats_number, approach, model)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    """parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gru", help="Model to train.")
     args = parser.parse_args()
-    train_all_of_model(args.model)
+    train_all_of_model(args.model)"""
+    main()
