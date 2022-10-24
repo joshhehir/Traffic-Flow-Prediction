@@ -159,12 +159,12 @@ class Connection(object):
         for model_name in model_names:
             try:
                 with open('predictedvalues.json', 'r') as openfile:
- 
+
                     # Reading from json file
                     json_object = json.load(openfile)
                 models[model_name] = json_object[model_name][str(self.node.scats_number)][str(name)]
             except Exception as e:
-            	print("{0} model for junction {1} could not be found!".format(model_name, name))
+                print("{0} model for junction {1} could not be found!".format(model_name, name))
         return models
 
     def contains_street(self, street_name):
@@ -231,8 +231,8 @@ class Graph(object):
             print("=====")
             total_cost = 0
             for i, j in path:
-            	print("{0} - {1} {2}. Cost: {3}".format(i.scats_number, j.streets[0], j.streets[1], j.models[model][time]))
-
+                print("{0} - {1} {2}. Cost: {3}".format(i.scats_number, j.streets[0], j.streets[1],
+                                                        j.models[model][time]))
 
 
 def get_graph():
@@ -243,7 +243,7 @@ def get_graph():
         node = Node(scats, coordinates)
         print("adding connections for {0}".format(scats))
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
-        	node.add_incoming_connection(Connection(approach, node))
+            node.add_incoming_connection(Connection(approach, node))
         graph.add_node(node)
 
     for node in graph.nodes:
