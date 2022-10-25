@@ -1,8 +1,8 @@
 """
-Defination of NN model
+Definition of NN model
 """
 from keras import regularizers
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN, Input
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN
 from keras.models import Sequential
 
 
@@ -102,7 +102,7 @@ def _get_sae2(x_train, hidden, output):
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
     # Output layer
-    decoder = Dense(output, activation="sigmoid", activity_regularizer=regularizers.l1(learning_rate))
+    model.add(Dense(output, activation="sigmoid", activity_regularizer=regularizers.l1(learning_rate)))
 
     return model
 
