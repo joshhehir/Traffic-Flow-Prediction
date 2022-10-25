@@ -140,31 +140,29 @@ class Node(object):
 
     def connection_within_angle_range(self, connection_a, connection_b):
         vector_a = connection_a.direction
-        vector_b = connection_b.node.coordinates-connection_a.node.coordinates
+        vector_b = connection_a.node.coordinates-connection_b.node.coordinates
         if vector_a.angle(vector_b) < 45:
             return True
         return False
 
 class Connection(object):
 
-    def __init__(self, name, node):
+    def __init__(self, name, c_id, node):
         self.node = node
         self.streets = self.get_streets_from_name(name)
         self.direction = self.get_vector_from_name(name)
-        self.models = []
+        self.id = c_id
 
-    def load_models(self, name, model_names):
-        models = {}
-        for model_name in model_names:
-            try:
-                with open('predictedvalues.json', 'r') as openfile:
+    def get_model(self, model_name):
+        try:
+            with open('predictedvalues.json', 'r') as openfile:
 
-                    # Reading from json file
-                    json_object = json.load(openfile)
-                models[model_name] = json_object[model_name][str(self.node.scats_number)][str(name)]
-            except Exception as e:
-                print("{0} model for junction {1} could not be found!".format(model_name, name))
-        return models
+                # Reading from json file
+                json_object = json.load(openfile)
+            model = json_object[model_name][str(self.node.scats_number)][str(self.id)]
+            return model
+        except Exception as e:
+            print("{0} model for junction {1} could not be found!".format(model_name, self.show_connection()))
 
     def contains_streets_count(self, streets):
         intersect_count = 0
@@ -172,6 +170,9 @@ class Connection(object):
             if street in self.streets:
                 intersect_count += 1
         return intersect_count
+
+    def show_connection(self):
+        return "{0} - {1} {2}".format(self.node.scats_number, self.streets[0], self.streets[1])
 
     def get_vector_from_name(self, name):
         words = name.upper().split(' OF ')
@@ -215,20 +216,16 @@ class Graph(object):
         return path, restrictions
 
     def find_next_best_node(self, path, destination, index, restrictions):
-        print(len(path[index][0].outgoing_connections))
         restrictions.append([])
         for connection in path[index][0].outgoing_connections:
             if connection.node == destination:
-                print("found destination")
                 path.append((connection.node, connection))
                 restrictions[index].append(path[index][0])
                 return path, restrictions
             elif connection.node.coordinates.distance(destination.coordinates) < path[index][0].coordinates.distance(destination.coordinates):
 
-                print("found node {0} closer to destination".format(connection.node.scats_number))
                 try:
                     if connection.node in restrictions[index + 1]:
-                        print("node restricted")
                         return path, restrictions
                 except:
                     pass
@@ -246,7 +243,7 @@ class Graph(object):
         for node in self.nodes:
             print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0], node.incoming_connections[0].streets[1]))
             for connection in node.outgoing_connections:
-                print("\t{0} - {1} {2}".format(connection.node.scats_number, connection.streets[0], connection.streets[1]))
+                print("\t{0}".format(connection.show_connection()))
             print("\n")
 
     def get_paths(self, origin, destination, min_path_count, model, time_in_minutes):
@@ -269,9 +266,9 @@ class Graph(object):
                     print("Origin: {0} - {1} {2}.".format(i.scats_number, j.streets[0], j.streets[1]))
                 else:
                     time_index = floor((time_in_minutes+elapsed_time)/15)
-                    volume = j.models[model][time_index]
+                    volume = j.get_model(model)[time_index]
                     total_cost += volume
-                    distance_in_km = distance(i.coordinates, path[index+1][0].coordinates)
+                    distance_in_km = i.coordinates.distance(path[index+1][0].coordinates)
                     time = self.calculate_time(volume, 60, distance_in_km)
                     print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km".format(i.scats_number, j.streets[0], j.streets[1], time*60, distance_in_km))
                     elapsed_time += time*60
@@ -302,7 +299,8 @@ def get_graph():
         node = Node(scats, coordinates)
         print("adding connections for {0}".format(scats))
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
-            node.incoming_connections.append(Connection(approach, node))
+            connection_id = SCATS_DATA.get_location_id(approach)
+            node.incoming_connections.append(Connection(approach, connection_id, node))
         graph.add_node(node)
 
     for node in graph.nodes:
