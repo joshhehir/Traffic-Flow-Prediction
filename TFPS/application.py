@@ -1,178 +1,157 @@
 from data.scats import ScatsData
-import math
-from math import radians, cos, sin, asin, sqrt
+from math import radians, cos, sin, asin, sqrt, degrees, acos, floor
 import json
 import numpy as np
 from keras.models import load_model
 
 SCATS_DATA = ScatsData()
 
+class Vector(object):
 
-def angle_of_vectors(a, b, c, d):
-    dotProduct = a * c + b * d
-    # for three dimensional simply add dotProduct = a*c + b*d  + e*f
-    modOfVector1 = math.sqrt(a * a + b * b) * math.sqrt(c * c + d * d)
-    # for three dimensional simply add modOfVector = math.sqrt( a*a + b*b + e*e)*math.sqrt(c*c + d*d +f*f)
-    angle = dotProduct / modOfVector1
-    angleInDegree = math.degrees(math.acos(angle))
-    # print("θ =",angleInDegree,"°")
-    return angleInDegree
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
 
+    def angle(self, other):
+        '''Angle of vectors
+            Calculate the angle between self and other vector
+            # Arguements
+                other: 2D vector, vector to check angle against
+            # Returns
+                angle_in_degrees: Float, angle between provided vectors
+        ''' 
 
-def get_streets_from_name(name):
-    words = name.upper().split(' OF ')
-    streetB = words[1]
-    streetA = words[0].split()
-    streetA = ' '.join(streetA[:len(streetA) - 1])
-    return [streetA, streetB]
+        dot_product = self.x * other.x + self.y * other.y
+        mod_of_vector = sqrt(self.x**2 + self.y**2) * sqrt(other.x**2 + other.y**2)
+        angle = dot_product / mod_of_vector
+        angle_in_degrees = degrees(acos(angle))
+        return angle_in_degrees
 
+    def distance(self, other):
+        '''Distance
+            Calculate distance to other vector 
+            # Arguements
+                other: 2D vector
+            # Returns
+                result: Float, distance from self to other
+        '''
 
-def get_cardinality_from_name(name):
-    words = name.upper().split(' OF ')
-    cardinality = words[0].split()
-    cardinality = cardinality[len(cardinality) - 1:][0]
-    if cardinality == "N":
-        return 0
-    elif cardinality == "NE":
-        return 1
-    elif cardinality == "E":
-        return 2
-    elif cardinality == "SE":
-        return 3
-    elif cardinality == "S":
-        return 4
-    elif cardinality == "SW":
-        return 5
-    elif cardinality == "W":
-        return 6
-    elif cardinality == "NW":
-        return 7
-    else:
-        return None
-
-
-def convert_cardinality_to_vector(cardinality):
-    if cardinality == 0:
-        return 0, 1
-    elif cardinality == 1:
-        return 1, 1
-    elif cardinality == 2:
-        return 1, 0
-    elif cardinality == 3:
-        return 1, -1
-    elif cardinality == 4:
-        return 0, -1
-    elif cardinality == 5:
-        return -1, -1
-    elif cardinality == 6:
-        return -1, 0
-    elif cardinality == 7:
-        return -1, 1
-
-
-def get_inverse_cardinality(cardinality):
-    reverse = cardinality + 4
-    if reverse >= 8:
-        reverse = reverse - 8
-    return reverse
-
-
-def distance(vector_a, vector_b):
+        lon1 = radians(self.x)
+        lon2 = radians(other.x)
+        lat1 = radians(self.y)
+        lat2 = radians(other.y)
+          
+        # Haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
      
-    # The math module contains a function named
-    # radians which converts from degrees to radians.
-    lon1 = radians(vector_a[0])
-    lon2 = radians(vector_b[0])
-    lat1 = radians(vector_a[1])
-    lat2 = radians(vector_b[1])
-      
-    # Haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
- 
-    c = 2 * asin(sqrt(a))
-    
-    # Radius of earth in kilometers. Use 3956 for miles
-    r = 6371
-      
-    # calculate the result
-    return(c * r)
+        c = 2 * asin(sqrt(a))
+        
+        # Radius of earth in kilometers. Use 3956 for miles
+        r = 6371
+          
+        # calculate the result
+        return(c * r)
 
 
-def direction(vector_a, vector_b):
-    return [vector_a[0] - vector_b[0], vector_a[1] - vector_b[1]]
+    def direction(self, other):
+        '''Direction
+            Calculate direction to other vector
+            # Arguements
+                other: 2D vector
+            # Returns
+                result: Float, direction to other vector
+        '''
 
+
+        return Vector(self.x - other.x, self.y - other.y)
+
+    def __sub__(self, other):
+        return Vector(other.x-self.x, other.y-self.y)
+
+    def __neg__(self):
+        return Vector(-self.x, -self.y)
+
+    def __str__(self):
+        return "({0}, {1})".format(self.x, self.y)
 
 class Node(object):
+
     def __init__(self, scats_number, coordinates):
         self.scats_number = scats_number
-        self.coordinates = coordinates
+        self.coordinates = Vector(coordinates[0], coordinates[1])
         self.incoming_connections = []
         self.outgoing_connections = []
 
-    def add_incoming_connection(self, connection):
-        self.incoming_connections.append(connection)
-
     def find_outgoing_connections(self, graph):
+        '''Find outgoing connections
+            Searches through incoming connections to find outgoing connections
+            # Arguements
+                graph: Node List, represents the node graph
+            # Returns
+                None
+        '''
+
         for connection in self.incoming_connections:
             connection = self.get_respective_outgoing_connection(connection, graph)
             if connection != None:
                 self.outgoing_connections.append(connection)
 
     def get_respective_outgoing_connection(self, connection, graph):
-        """1. get connections of connected nodes
-        2. get nodes in direction of cardinality
-        3. get closest node """
+        '''Get respective outgoing connection
+            Gets an incomming connection from another node which is the inverse of the provided connection
+            # Arguements
+                connection: Connection, the incoming connection
+                graph: Node List, represents the node graph
+            # Returns
+                best_connection: the connection most probable to be the inverse of the provided connection
+        '''
 
+        # Find all valid connections
         valid_connections = []
         for node in graph.nodes:
             for external_connection in node.incoming_connections:
-                if external_connection.streets[0] in connection.streets or external_connection.streets[
-                    1] in connection.streets:
-                    if not (external_connection.streets[0] in connection.streets and external_connection.streets[
-                        1] in connection.streets):
-                        vector_a = convert_cardinality_to_vector(connection.cardinality)
-                        vector_b = tuple(
-                            map(lambda i, j: i - j, external_connection.node.coordinates, connection.node.coordinates))
-                        if angle_of_vectors(vector_a[1], vector_a[0], vector_b[0], vector_b[1]) < 45:
-                            valid_connections.append(external_connection)
+                if self.connections_share_one_street(connection, external_connection):
+                    if self.connection_within_angle_range(connection, external_connection):
+                        valid_connections.append(external_connection)
 
-        best_connection = None
+        if len(valid_connections) < 1:
+            return
+        # Select best connection
+        best_connection = valid_connections[0]
+        origin = connection.node.coordinates
         for external_connection in valid_connections:
-            if best_connection == None:
+            
+            current_position = external_connection.node.coordinates
+            best_position = best_connection.node.coordinates
+
+            if origin.distance(current_position) < origin.distance(best_position):
                 best_connection = external_connection
-            elif (distance(connection.node.coordinates, external_connection.node.coordinates) < distance(
-                    connection.node.coordinates, best_connection.node.coordinates)):
-                best_connection = external_connection
-            elif (distance(connection.node.coordinates, external_connection.node.coordinates) == distance(
-                    connection.node.coordinates, best_connection.node.coordinates)):
-                if abs(get_inverse_cardinality(connection.cardinality) - external_connection.cardinality) < abs(
-                        get_inverse_cardinality(connection.cardinality) - best_connection.cardinality):
+            elif (origin.distance(current_position) == origin.distance(best_position)):
+                if origin.angle(-current_position) < origin.angle(-best_position):
                     best_connection = external_connection
         return best_connection
 
-    def add_outgoing_connection(self, connection):
-        if connection in self.outgoing_connections:
-            return
-        self.outgoing_connections.append(connection)
+    def connections_share_one_street(self, connection_a, connection_b):
+        if connection_a.contains_streets_count(connection_b.streets) == 1:
+            return True
+        return False
 
-    def get_streets_in_connections(self):
-        streets = []
-        for connection in self.incoming_connections:
-            for street in connection.streets:
-                if street not in streets:
-                    streets.append(street)
-        return streets
-
+    def connection_within_angle_range(self, connection_a, connection_b):
+        vector_a = connection_a.direction
+        vector_b = connection_b.node.coordinates-connection_a.node.coordinates
+        if vector_a.angle(vector_b) < 45:
+            return True
+        return False
 
 class Connection(object):
 
     def __init__(self, name, node):
         self.node = node
-        self.streets = get_streets_from_name(name)
-        self.cardinality = get_cardinality_from_name(name)
-        self.models = self.load_models(SCATS_DATA.get_location_id(name), ["gru"])
+        self.streets = self.get_streets_from_name(name)
+        self.direction = self.get_vector_from_name(name)
+        self.models = []
 
     def load_models(self, name, model_names):
         models = {}
@@ -187,8 +166,42 @@ class Connection(object):
                 print("{0} model for junction {1} could not be found!".format(model_name, name))
         return models
 
-    def contains_street(self, street_name):
-        return street_name in self.streets
+    def contains_streets_count(self, streets):
+        intersect_count = 0
+        for street in streets:
+            if street in self.streets:
+                intersect_count += 1
+        return intersect_count
+
+    def get_vector_from_name(self, name):
+        words = name.upper().split(' OF ')
+        direction = words[0].split()
+        direction = direction[len(direction) - 1:][0]
+        if direction == "N":
+            return Vector(0,1)
+        elif direction == "NE":
+            return Vector(1,1)
+        elif direction == "E":
+            return Vector(1,0)
+        elif direction == "SE":
+            return Vector(1,-1)
+        elif direction == "S":
+            return Vector(0,-1)
+        elif direction == "SW":
+            return Vector(-1,-1)
+        elif direction == "W":
+            return Vector(-1, 0)
+        elif direction == "NW":
+            return Vector(-1, 1)
+        else:
+            return None
+
+    def get_streets_from_name(self, name):
+        words = name.upper().split(' OF ')
+        streetB = words[1]
+        streetA = words[0].split()
+        streetA = ' '.join(streetA[:len(streetA) - 1])
+        return [streetA, streetB]
 
 
 class Graph(object):
@@ -202,20 +215,20 @@ class Graph(object):
         return path, restrictions
 
     def find_next_best_node(self, path, destination, index, restrictions):
-        # print(len(path[index][0].outgoing_connections))
+        print(len(path[index][0].outgoing_connections))
         restrictions.append([])
         for connection in path[index][0].outgoing_connections:
             if connection.node == destination:
-                # print("found destination")
+                print("found destination")
                 path.append((connection.node, connection))
                 restrictions[index].append(path[index][0])
                 return path, restrictions
-            elif distance(connection.node.coordinates, destination.coordinates) < distance(path[index][0].coordinates, destination.coordinates):
+            elif connection.node.coordinates.distance(destination.coordinates) < path[index][0].coordinates.distance(destination.coordinates):
 
-                # print("found node {0} closer to destination".format(connection.node.scats_number))
+                print("found node {0} closer to destination".format(connection.node.scats_number))
                 try:
                     if connection.node in restrictions[index + 1]:
-                        # print("node restricted")
+                        print("node restricted")
                         return path, restrictions
                 except:
                     pass
@@ -255,8 +268,7 @@ class Graph(object):
                 if index == 0:
                     print("Origin: {0} - {1} {2}.".format(i.scats_number, j.streets[0], j.streets[1]))
                 else:
-                    time_index = math.floor((time_in_minutes+elapsed_time)/15)
-                    print(time_index)
+                    time_index = floor((time_in_minutes+elapsed_time)/15)
                     volume = j.models[model][time_index]
                     total_cost += volume
                     distance_in_km = distance(i.coordinates, path[index+1][0].coordinates)
@@ -265,7 +277,7 @@ class Graph(object):
                     elapsed_time += time*60
                 index += 1
 
-            print ("\n\t Total time to destination: {0:.0f} mins {1} seconds".format(elapsed_time, decimal_to_seconds(elapsed_time-math.floor(elapsed_time))))
+            print ("\n\t Total time to destination: {0:.0f} mins {1} seconds".format(elapsed_time, decimal_to_seconds(elapsed_time-floor(elapsed_time))))
 
     def calculate_time(self, volume, speed_limit, distance):
         travel_speed = get_speed_coefficient(volume)
@@ -280,7 +292,7 @@ def get_speed_coefficient(C):
     return np.clip(((-B-sqrt(D)/(2*A))+94.5), 0, 60)
 
 def decimal_to_seconds(value):
-    return math.floor((value/100)*6000)
+    return floor((value/100)*6000)
 
 def get_graph():
     graph = Graph()
@@ -290,7 +302,7 @@ def get_graph():
         node = Node(scats, coordinates)
         print("adding connections for {0}".format(scats))
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
-            node.add_incoming_connection(Connection(approach, node))
+            node.incoming_connections.append(Connection(approach, node))
         graph.add_node(node)
 
     for node in graph.nodes:
@@ -300,6 +312,7 @@ def get_graph():
 
 def main():
     graph = get_graph()
+    graph.show_graph()
     graph.get_paths(970, 4040, 5, "gru", 0*4*15)
 
 
