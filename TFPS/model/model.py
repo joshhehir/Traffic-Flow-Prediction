@@ -62,7 +62,7 @@ def _get_sae(inputs, hidden, output):
     return model
 
 
-def _get_sae2(x_train, hidden, output):
+def get_sae2(x_train, hidden, output):
     """SAE(Auto-Encoders) TODO REPLACE THIS
     Build SAE Model.
     # Arguments
