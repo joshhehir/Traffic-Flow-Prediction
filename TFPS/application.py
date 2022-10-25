@@ -78,26 +78,25 @@ def get_inverse_cardinality(cardinality):
 
 
 def distance(vector_a, vector_b):
-     
     # The math module contains a function named
     # radians which converts from degrees to radians.
     lon1 = radians(vector_a[0])
     lon2 = radians(vector_b[0])
     lat1 = radians(vector_a[1])
     lat2 = radians(vector_b[1])
-      
+
     # Haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
- 
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+
     c = 2 * asin(sqrt(a))
-    
+
     # Radius of earth in kilometers. Use 3956 for miles
     r = 6371
-      
+
     # calculate the result
-    return(c * r)
+    return (c * r)
 
 
 def direction(vector_a, vector_b):
@@ -168,11 +167,11 @@ class Node(object):
 
 class Connection(object):
 
-    def __init__(self, name, node):
+    def __init__(self, name, node, model):
         self.node = node
         self.streets = get_streets_from_name(name)
         self.cardinality = get_cardinality_from_name(name)
-        self.models = self.load_models(SCATS_DATA.get_location_id(name), ["gru"])
+        self.models = self.load_models(SCATS_DATA.get_location_id(name), [model])
 
     def load_models(self, name, model_names):
         models = {}
@@ -210,7 +209,8 @@ class Graph(object):
                 path.append((connection.node, connection))
                 restrictions[index].append(path[index][0])
                 return path, restrictions
-            elif distance(connection.node.coordinates, destination.coordinates) < distance(path[index][0].coordinates, destination.coordinates):
+            elif distance(connection.node.coordinates, destination.coordinates) < distance(path[index][0].coordinates,
+                                                                                           destination.coordinates):
 
                 # print("found node {0} closer to destination".format(connection.node.scats_number))
                 try:
@@ -231,9 +231,11 @@ class Graph(object):
 
     def show_graph(self):
         for node in self.nodes:
-            print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0], node.incoming_connections[0].streets[1]))
+            print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0],
+                                                       node.incoming_connections[0].streets[1]))
             for connection in node.outgoing_connections:
-                print("\t{0} - {1} {2}".format(connection.node.scats_number, connection.streets[0], connection.streets[1]))
+                print("\t{0} - {1} {2}".format(connection.node.scats_number, connection.streets[0],
+                                               connection.streets[1]))
             print("\n")
 
     def get_paths(self, origin, destination, min_path_count, model, time_in_minutes):
@@ -250,39 +252,45 @@ class Graph(object):
             elapsed_time = 0
             index = 0
             for i, j in path:
-                if index+1 == len(path):
+                if index + 1 == len(path):
                     break
                 if index == 0:
                     print("Origin: {0} - {1} {2}.".format(i.scats_number, j.streets[0], j.streets[1]))
                 else:
-                    time_index = math.floor((time_in_minutes+elapsed_time)/15)
+                    time_index = math.floor((time_in_minutes + elapsed_time) / 15)
                     print(time_index)
                     volume = j.models[model][time_index]
                     total_cost += volume
-                    distance_in_km = distance(i.coordinates, path[index+1][0].coordinates)
+                    distance_in_km = distance(i.coordinates, path[index + 1][0].coordinates)
                     time = self.calculate_time(volume, 60, distance_in_km)
-                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km".format(i.scats_number, j.streets[0], j.streets[1], time*60, distance_in_km))
-                    elapsed_time += time*60
+                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km".format(i.scats_number, j.streets[0],
+                                                                                        j.streets[1], time * 60,
+                                                                                        distance_in_km))
+                    elapsed_time += time * 60
                 index += 1
 
-            print ("\n\t Total time to destination: {0:.0f} mins {1} seconds".format(elapsed_time, decimal_to_seconds(elapsed_time-math.floor(elapsed_time))))
+            print("\n\t Total time to destination: {0:.0f} mins {1} seconds".format(elapsed_time, decimal_to_seconds(
+                elapsed_time - math.floor(elapsed_time))))
 
     def calculate_time(self, volume, speed_limit, distance):
         travel_speed = get_speed_coefficient(volume)
         print("Speed: {0}. Volume {1}".format(travel_speed, volume))
-        return distance/travel_speed
+        return distance / travel_speed
+
 
 def get_speed_coefficient(C):
     A = -0.9765625
     B = 62.5
-    speed = 60    
-    D = pow(B, 2) - (4*A*-C)
-    return np.clip(((-B-sqrt(D)/(2*A))+94.5), 0, 60)
+    speed = 60
+    D = pow(B, 2) - (4 * A * -C)
+    return np.clip(((-B - sqrt(D) / (2 * A)) + 94.5), 0, 60)
+
 
 def decimal_to_seconds(value):
-    return math.floor((value/100)*6000)
+    return math.floor((value / 100) * 6000)
 
-def get_graph():
+
+def get_graph(model):
     graph = Graph()
 
     for scats in SCATS_DATA.get_all_scats_numbers():
@@ -290,7 +298,7 @@ def get_graph():
         node = Node(scats, coordinates)
         print("adding connections for {0}".format(scats))
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
-            node.add_incoming_connection(Connection(approach, node))
+            node.add_incoming_connection(Connection(approach, node, model))
         graph.add_node(node)
 
     for node in graph.nodes:
@@ -300,7 +308,7 @@ def get_graph():
 
 def main():
     graph = get_graph()
-    graph.get_paths(970, 4040, 5, "gru", 0*4*15)
+    graph.get_paths(970, 4040, 5, "gru", 0 * 4 * 15)
 
 
 if __name__ == '__main__':
