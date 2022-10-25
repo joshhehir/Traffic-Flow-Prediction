@@ -61,6 +61,36 @@ def _get_sae(inputs, hidden, output):
     return model
 
 
+def _get_sae2(inputs, hidden, output):
+    """SAE(Auto-Encoders)
+    Build SAE Model.
+    # Arguments
+        inputs: Integer, number of input units.
+        hidden: Integer, number of hidden units.
+        output: Integer, number of output units.
+    # Returns
+        model: Model, nn model.
+    """
+
+    model = Sequential()
+    model.add(Dense(hidden, input_dim=inputs, name='input'))
+    model.add(Activation('sigmoid'))
+    saes.add(Dense(hidden / 2, name='hidden1'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dense(hidden / 4, name='hidden2'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dense(hidden / 8, name='hidden3'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dense(hidden / 4, name='hidden4'))
+    saes.add(Activation('sigmoid'))
+    model.add(Dropout(0.2))
+    saes.add(Dense(hidden / 2, name='hidden5'))
+    saes.add(Activation('sigmoid'))
+    model.add(Dense(output, activation='sigmoid'))
+
+    return model
+
+
 def get_saes(layers):
     """SAEs(Stacked Auto-Encoders)
     Build SAEs Model.
@@ -84,6 +114,33 @@ def get_saes(layers):
     saes.add(Dense(layers[4], activation='sigmoid'))
 
     models = [sae1, sae2, sae3, saes]
+
+    return models
+
+
+def get_saes2(layers):
+    """SAEs(Stacked Auto-Encoders)
+    Build SAEs Model.
+    # Arguments
+        layers: List(int), number of input, output and hidden units.
+    # Returns
+        models: List(Model), List of SAE and SAEs.
+    """
+    sae1 = _get_sae(layers[0], layers[2], layers[0])
+    sae2 = _get_sae(layers[0] * 2, layers[2], layers[0] * 2)
+    sae3 = _get_sae(layers[0] * 4, layers[2], layers[-1])
+
+    """saes = Sequential()
+    saes.add(Dense(layers[1], input_dim=layers[0], name='hidden1'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dense(layers[2], name='hidden2'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dense(layers[3], name='hidden3'))
+    saes.add(Activation('sigmoid'))
+    saes.add(Dropout(0.2))
+    saes.add(Dense(layers[4], activation='sigmoid'))
+    """
+    models = [sae1, sae2, sae3]
 
     return models
 
