@@ -146,16 +146,6 @@ def get_saes2(layers):
     sae2 = _get_sae(layers[0] * 2, layers[2], layers[0] * 2)
     sae3 = _get_sae(layers[0] * 4, layers[2], layers[-1])
 
-    """saes = Sequential()
-    saes.add(Dense(layers[1], input_dim=layers[0], name='hidden1'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dense(layers[2], name='hidden2'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dense(layers[3], name='hidden3'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dropout(0.2))
-    saes.add(Dense(layers[4], activation='sigmoid'))
-    """
     models = [sae1, sae2, sae3]
 
     return models
