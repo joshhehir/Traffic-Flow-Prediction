@@ -1,7 +1,8 @@
 """
 Defination of NN model
 """
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN
+from keras import regularizers
+from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN, Input
 from keras.models import Sequential
 
 
@@ -61,8 +62,8 @@ def _get_sae(inputs, hidden, output):
     return model
 
 
-def _get_sae2(inputs, hidden, output):
-    """SAE(Auto-Encoders)
+def _get_sae2(x_train, hidden, output):
+    """SAE(Auto-Encoders) TODO REPLACE THIS
     Build SAE Model.
     # Arguments
         inputs: Integer, number of input units.
@@ -72,21 +73,36 @@ def _get_sae2(inputs, hidden, output):
         model: Model, nn model.
     """
 
+    # batch_size = 64
+    input_dim = x_train[0].shape[0]
+    learning_rate = 1e-5
+
     model = Sequential()
-    model.add(Dense(hidden, input_dim=inputs, name='input'))
-    model.add(Activation('sigmoid'))
-    saes.add(Dense(hidden / 2, name='hidden1'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dense(hidden / 4, name='hidden2'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dense(hidden / 8, name='hidden3'))
-    saes.add(Activation('sigmoid'))
-    saes.add(Dense(hidden / 4, name='hidden4'))
-    saes.add(Activation('sigmoid'))
+
+    # first layer
+    model.add(Dense(hidden, input_dim=input_dim, name='input', activation="relu",
+                    activity_regularizer=regularizers.l1(learning_rate)))
+
+    # second layer
+    model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Third layer
+    model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Fourth/Bottleneck layer
+    model.add(Dense(hidden / 8, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Fifth layer
+    model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # add dropout
     model.add(Dropout(0.2))
-    saes.add(Dense(hidden / 2, name='hidden5'))
-    saes.add(Activation('sigmoid'))
-    model.add(Dense(output, activation='sigmoid'))
+
+    # Sixth layer
+    model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Output layer
+    decoder = Dense(output, activation="sigmoid", activity_regularizer=regularizers.l1(learning_rate))
 
     return model
 
