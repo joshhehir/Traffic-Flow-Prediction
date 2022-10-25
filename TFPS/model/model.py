@@ -1,6 +1,7 @@
 """
-Defination of NN model
+Definition of NN model
 """
+from keras import regularizers
 from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN
 from keras.models import Sequential
 
@@ -61,6 +62,51 @@ def _get_sae(inputs, hidden, output):
     return model
 
 
+def _get_sae2(x_train, hidden, output):
+    """SAE(Auto-Encoders) TODO REPLACE THIS
+    Build SAE Model.
+    # Arguments
+        inputs: Integer, number of input units.
+        hidden: Integer, number of hidden units.
+        output: Integer, number of output units.
+    # Returns
+        model: Model, nn model.
+    """
+
+    # batch_size = 64
+    input_dim = x_train[0].shape[0]
+    learning_rate = 1e-5
+
+    model = Sequential()
+
+    # first layer
+    model.add(Dense(hidden, input_dim=input_dim, name='input', activation="relu",
+                    activity_regularizer=regularizers.l1(learning_rate)))
+
+    # second layer
+    model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Third layer
+    model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Fourth/Bottleneck layer
+    model.add(Dense(hidden / 8, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Fifth layer
+    model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # add dropout
+    model.add(Dropout(0.2))
+
+    # Sixth layer
+    model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # Output layer
+    model.add(Dense(output, activation="sigmoid", activity_regularizer=regularizers.l1(learning_rate)))
+
+    return model
+
+
 def get_saes(layers):
     """SAEs(Stacked Auto-Encoders)
     Build SAEs Model.
@@ -84,6 +130,23 @@ def get_saes(layers):
     saes.add(Dense(layers[4], activation='sigmoid'))
 
     models = [sae1, sae2, sae3, saes]
+
+    return models
+
+
+def get_saes2(layers):
+    """SAEs(Stacked Auto-Encoders)
+    Build SAEs Model.
+    # Arguments
+        layers: List(int), number of input, output and hidden units.
+    # Returns
+        models: List(Model), List of SAE and SAEs.
+    """
+    sae1 = _get_sae(layers[0], layers[2], layers[0])
+    sae2 = _get_sae(layers[0] * 2, layers[2], layers[0] * 2)
+    sae3 = _get_sae(layers[0] * 4, layers[2], layers[-1])
+
+    models = [sae1, sae2, sae3]
 
     return models
 
