@@ -126,11 +126,10 @@ def train_with_args(scats, junction, model_to_train):
                     m = model.get_srnn([12, 64, 64, 1])
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
 
-
                 predicted = m.predict(x_test)
                 predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
                 with open('predictedvalues.json', 'r') as openfile:
- 
+
                     # Reading from json file
                     json_object = json.load(openfile)
                 scats_site = str(scats_site)
@@ -150,10 +149,6 @@ def train_with_args(scats, junction, model_to_train):
             except:
                 print("Could not create model for {0} : {1} - {2}".format(model_to_train, scats_site, junction))
 
-
-                
-
-            
 
 def main(argv):
     parser = argparse.ArgumentParser()
