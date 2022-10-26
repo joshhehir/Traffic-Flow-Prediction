@@ -138,7 +138,7 @@ def train_with_args(scats, junction, model_to_train):
                     m = model.get_gru([96, 64, 64, 1])
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
                 if model_to_train == 'saes':
-                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
                     m = train_saes(x_train, model_to_train, scats_site, junction, config)
                     # def train_seas2(x_train, name, scats, junction, config):
                 if model_to_train == 'srnn':
