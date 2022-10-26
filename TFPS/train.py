@@ -51,6 +51,7 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
     df.to_csv("{0} loss.csv".format(file), encoding='utf-8', index=False)
     print("Training complete!")
 
+
 def train_saes(x_train, name, scats, junction, config):
     """Trains the SAEs model TODO FIX THIS
     Parameters needed:

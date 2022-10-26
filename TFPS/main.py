@@ -85,9 +85,8 @@ def plot_results(y_true, y_preds, names):
             y_pred: List/ndarray, predicted data.
             names: List, Method names.
         """
-    d = '2016-3-4 00:00'
+    d = '2006-10-16 00:00'
     x = pd.date_range(d, periods=96, freq='15min')
-
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
