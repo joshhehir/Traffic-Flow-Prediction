@@ -217,7 +217,7 @@ class UiRouting(object):
         graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
 
     def route_process(self):
-        """Enables threads for the training GUI"""
+        """Enables threads for the routing GUI"""
         training_threads = []
         t = threading.Thread(target=self.route)
         training_threads.append(t)

@@ -1,6 +1,6 @@
 {
   "train_config": {
-    "lag": 12,
+    "lag": 96,
     "batch": 256,
     "epochs": 6
   },
