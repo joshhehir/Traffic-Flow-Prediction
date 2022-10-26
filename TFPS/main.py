@@ -107,15 +107,6 @@ def plot_results(y_true, y_preds, names):
     plt.show()
 
 
-def plot_error(mtx):
-    # Plot errors per model
-    fig = plt.figure(figsize=(7, 5))
-    labels = ["Mape", "EVS", "MAE", "MSE", "RMSE", "R2"]
-    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
-
-    return
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--scats", default=970, help="SCATS site number.")
@@ -124,7 +115,7 @@ def main():
 
     models = []
     untrained_models = []
-    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
+    model_names = ['LSTM', 'GRU', 'SRNN', 'SAEs']
 
     for name in model_names:
         file = "model/{0}/{1}/{2}.h5".format(name.lower(), args.scats, args.junction)
@@ -157,7 +148,6 @@ def main():
         mtx.append(eva_regress(y_test, predicted))
 
     plot_results(y_test[:96], y_preds, model_names)
-    plot_error(mtx)
 
 
 def train_all_of_model(model):
