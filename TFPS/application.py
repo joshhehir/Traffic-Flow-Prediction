@@ -54,19 +54,6 @@ class Vector(object):
         # calculate the result
         return(c * r)
 
-
-    def direction(self, other):
-        '''Direction
-            Calculate direction to other vector
-            # Arguements
-                other: 2D vector
-            # Returns
-                result: Float, direction to other vector
-        '''
-
-
-        return Vector(self.x - other.x, self.y - other.y)
-
     def __sub__(self, other):
         return Vector(other.x-self.x, other.y-self.y)
 
@@ -118,6 +105,7 @@ class Node(object):
 
         if len(valid_connections) < 1:
             return
+
         # Select best connection
         best_connection = valid_connections[0]
         origin = connection.node.coordinates
@@ -134,14 +122,32 @@ class Node(object):
         return best_connection
 
     def connections_share_one_street(self, connection_a, connection_b):
+        '''Connections share one street
+            Checks if the provided connections share ONLY one street
+            # Arguements
+                connection_a: Connection
+                connection_b: Connection
+            # Returns
+                result: bool, true if only one street overlaps
+        '''
+
         if connection_a.contains_streets_count(connection_b.streets) == 1:
             return True
         return False
 
     def connection_within_angle_range(self, connection_a, connection_b):
+        '''Connection within angle range
+            Checks if connection_b falls within 45 degrees of the direction connection_a is heading
+            # Arguements
+                connection_a: Connection, origin
+                connection_b: Connection, target
+            # Returns
+                result: bool, true if within 45 degrees
+        '''
+
         vector_a = connection_a.direction
         vector_b = connection_a.node.coordinates-connection_b.node.coordinates
-        if vector_a.angle(vector_b) < 45:
+        if abs(vector_a.angle(vector_b)) < 45:
             return True
         return False
 
@@ -154,6 +160,14 @@ class Connection(object):
         self.id = c_id
 
     def get_model(self, model_name):
+        '''Get model
+            Locates the model predicted values in JSON file
+            # Arguements
+                model_name: string, name of the model to locate
+            # Returns
+                model: list, predicted values for this connection
+        '''
+
         try:
             with open('predictedvalues.json', 'r') as openfile:
 
@@ -165,6 +179,14 @@ class Connection(object):
             print("{0} model for junction {1} could not be found!".format(model_name, self.show_connection()))
 
     def contains_streets_count(self, streets):
+        '''Contains streets count
+            Counts how many streets overlap in self.streets and provided list
+            # Arguements
+                streets: list, values to overlap with
+            # Returns
+                intersect_count: int, count of overlapping values
+        '''
+
         intersect_count = 0
         for street in streets:
             if street in self.streets:
@@ -172,9 +194,19 @@ class Connection(object):
         return intersect_count
 
     def show_connection(self):
+        ''' Returns readable information as string'''
+
         return "{0} - {1} {2}".format(self.node.scats_number, self.streets[0], self.streets[1])
 
     def get_vector_from_name(self, name):
+        '''Get vector from name
+            Uses name to determine direction of connection as a vector
+            # Arguements
+                name: string, name of location
+            # Returns
+                result: Vector, direction represented as a vector
+        '''
+
         words = name.upper().split(' OF ')
         direction = words[0].split()
         direction = direction[len(direction) - 1:][0]
@@ -198,6 +230,13 @@ class Connection(object):
             return None
 
     def get_streets_from_name(self, name):
+        '''Get streets from name
+            Convert name into list of streets
+            # Arguements
+                name: string, name of location
+            # Returns
+                result: list, streets of location
+        '''
         words = name.upper().split(' OF ')
         streetB = words[1]
         streetA = words[0].split()
@@ -211,11 +250,34 @@ class Graph(object):
         self.nodes = []
 
     def get_path(self, origin, destination, restrictions):
+        '''Get path
+            Searchs graph to find a path from one node to the other, will not use restricted nodes
+            # Arguements
+                origin: Node, starting point for path
+                destination: Node, goal for search
+                restrictions: list of lists, restricts nodes at specific indexes in a path
+            # Returns
+                path: list of (Node, Connection), node being the step and connection being the route taken from previous step
+                restrictions: list of lists, restrictions generated, or carried on, from generating paths
+        '''
+
         path = [(self.get_node(origin), self.get_node(origin).incoming_connections[0])]
         path, restrictions = self.find_next_best_node(path, self.get_node(destination), 0, restrictions)
         return path, restrictions
 
     def find_next_best_node(self, path, destination, index, restrictions):
+        '''Find next best node
+            Finds the next node in the path which gets closer to the destination
+            # Arguements
+                path: list of (Node, Connection), path being constructed
+                destination: Node, goal for search
+                index: int, current depth of path/search
+                restrictions: list of lists, restricts nodes at specific indexes in a path
+            # Returns
+                path: list of (Node, Connection), node being the step and connection being the route taken from previous step
+                restrictions: list of lists, restrictions generated, or carried on, from generating paths
+        '''
+
         restrictions.append([])
         for connection in path[index][0].outgoing_connections:
             if connection.node == destination:
@@ -233,13 +295,13 @@ class Graph(object):
                 return self.find_next_best_node(path, destination, index + 1, restrictions)
         return path, restrictions
 
-    def add_node(self, node):
-        self.nodes.append(node)
-
     def get_node(self, scats_number):
+        '''Returns the first node which matches the provided scats number'''
         return next(x for x in self.nodes if x.scats_number == scats_number)
 
     def show_graph(self):
+        '''Prints the graph in a readable format'''
+
         for node in self.nodes:
             print("{0} - {1} {2}\nConnections:".format(node.scats_number, node.incoming_connections[0].streets[0], node.incoming_connections[0].streets[1]))
             for connection in node.outgoing_connections:
@@ -247,6 +309,18 @@ class Graph(object):
             print("\n")
 
     def get_paths(self, origin, destination, min_path_count, model, time_in_minutes):
+        '''Get paths
+            Finds multiple unique paths to the same destination
+            # Arguements
+                origin: Node, starting point for path
+                destination: Node, goal for search
+                min_path_count: int, number of paths to attempt to create
+                model: string, model to use to predict travel time
+                time_in_minutes: int, the time at the start of the search
+            # Returns
+                path: list of (Node, Connection), node being the step and connection being the route taken from previous step
+        '''
+
         paths = []
         restrictions = []
         for x in range(min_path_count):
@@ -277,21 +351,45 @@ class Graph(object):
             print ("\n\t Total time to destination: {0:.0f} mins {1} seconds".format(elapsed_time, decimal_to_seconds(elapsed_time-floor(elapsed_time))))
 
     def calculate_time(self, volume, speed_limit, distance):
-        travel_speed = get_speed_coefficient(volume)
+        '''Calculate time
+            Calcualtes travel time in minutes
+            # Arguements
+                volume: float, volume of cars at time of traversal
+                speed_limit: float, max speed on road
+                distance: float, length of road
+            # Returns
+                result: float, travel time in minutes
+        '''
+
+        travel_speed = get_speed_coefficient(volume, speed_limit)
         print("Speed: {0}. Volume {1}".format(travel_speed, volume))
         return distance/travel_speed
 
-def get_speed_coefficient(C):
+def get_speed_coefficient(volume, speed_limit):
+    '''Get speed coefficient
+        Calculates speed using quadratic formula based on volume
+        # Arguements
+            volume: float, volume of cars at time of traversal
+            speed_limit: float, maximum speed
+        # Returns
+            result: x where y = Ax^2 * Bx + C, clamped between 0 and speed_limit
+    '''
+
     A = -0.9765625
     B = 62.5
+    C = volume
     speed = 60    
     D = pow(B, 2) - (4*A*-C)
-    return np.clip(((-B-sqrt(D)/(2*A))+94.5), 0, 60)
+    return np.clip(((-B-sqrt(D)/(2*A))+94.5), 0, speed_limit)
 
 def decimal_to_seconds(value):
+    '''Converts decimal minutes to seconds'''
+
     return floor((value/100)*6000)
 
 def get_graph():
+    '''Contructs Node graph for representing network of scats sites'''
+
     graph = Graph()
 
     for scats in SCATS_DATA.get_all_scats_numbers():
@@ -301,7 +399,7 @@ def get_graph():
         for approach in SCATS_DATA.get_scats_approaches_names(scats):
             connection_id = SCATS_DATA.get_location_id(approach)
             node.incoming_connections.append(Connection(approach, connection_id, node))
-        graph.add_node(node)
+        graph.nodes.append(node)
 
     for node in graph.nodes:
         node.find_outgoing_connections(graph)
