@@ -59,17 +59,22 @@ def get_sae(x_train, hidden, output):
     model = Sequential()
 
     # first layer
-    model.add(Dense(hidden, input_dim=input_dim, name='input', activation="relu",
-                    activity_regularizer=regularizers.l1(learning_rate)))
+    model.add(Dense(hidden, input_dim=input_dim, name='input', activation="relu"))
 
     # second layer
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
+    # add dropout
+    model.add(Dropout(0.2))
+
     # Third layer
-    model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+    # model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
+    # add dropout
+    # model.add(Dropout(0.2))
 
     # Fourth/Bottleneck layer
-    model.add(Dense(hidden / 8, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+    # model.add(Dense(hidden / 8, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
     # Fifth layer
     model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
@@ -80,8 +85,12 @@ def get_sae(x_train, hidden, output):
     # Sixth layer
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
+    # add dropout
+    # model.add(Dropout(0.2))
+
+    # model.add(Dense(hidden, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
     # Output layer
-    model.add(Dense(output, activation="sigmoid", activity_regularizer=regularizers.l1(learning_rate)))
+    model.add(Dense(output, activation="sigmoid"))
 
     return model
 
