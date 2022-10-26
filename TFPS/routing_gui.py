@@ -1,5 +1,4 @@
 import threading
-from time import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from data.scats import ScatsData
