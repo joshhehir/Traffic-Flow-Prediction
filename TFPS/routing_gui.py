@@ -213,7 +213,7 @@ class UiRouting(object):
         time_input_value = self.time_input.time().hour() * 60 + self.time_input.time().minute()
         # print(time_input_value)
         routes = 5
-        graph = get_graph(model_combo_value)
+        graph = get_graph()
         graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
 
     def route_process(self):
