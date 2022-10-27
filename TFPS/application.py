@@ -443,23 +443,16 @@ def make_graph():
     plt.show()
 
 
+def route_graph():
+    """TODO make this the routed graph with highlights etc"""
+    graph = get_graph()
+    print("graph")
+
+
 def main():
     graph = get_graph()
     graph.show_graph()
     graph.get_paths(970, 4040, 5, "gru", 0 * 4 * 15)
-
-    """G = nx.DiGraph()
-    for node in graph.nodes:
-        if node.coordinates.x != 0:
-            G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
-            for connection in node.outgoing_connections:
-                G.add_edge(node.scats_number, connection.node.scats_number)
-
-    pos = nx.get_node_attributes(G, 'pos')
-    nx.draw_networkx_nodes(G, pos, node_size=500)
-    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
-    nx.draw_networkx_labels(G, pos)
-    plt.show()"""
 
     make_graph()
 
