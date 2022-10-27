@@ -2,7 +2,8 @@ from data.scats import ScatsData
 from math import radians, cos, sin, asin, sqrt, degrees, acos, floor
 import json
 import numpy as np
-from keras.models import load_model
+import matplotlib.pyplot as plt
+import networkx as nx
 
 SCATS_DATA = ScatsData()
 
@@ -53,6 +54,15 @@ class Vector(object):
           
         # calculate the result
         return(c * r)
+
+    def to_tuple(self):
+
+        lon = radians(self.x)
+        lat = radians(self.y)
+
+        a = sin
+
+        return (self.x, self.y)
 
     def __sub__(self, other):
         return Vector(other.x-self.x, other.y-self.y)
@@ -345,9 +355,9 @@ class Graph(object):
                     total_cost += volume
                     distance_in_km = i.coordinates.distance(path[index+1][0].coordinates)
                     time = self.calculate_time(volume, 60, distance_in_km)
-                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km".format(i.scats_number, j.streets[0],
+                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km. Node coordinates: {5}".format(i.scats_number, j.streets[0],
                                                                                         j.streets[1], time * 60,
-                                                                                        distance_in_km))
+                                                                                        distance_in_km, i.coordinates))
                     elapsed_time += time * 60
                 index += 1
 
@@ -414,6 +424,19 @@ def main():
     graph = get_graph()
     graph.show_graph()
     graph.get_paths(970, 4040, 5, "gru", 0*4*15)
+
+    G = nx.DiGraph()
+    for node in graph.nodes:
+        if node.coordinates.x != 0:
+            G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
+            for connection in node.outgoing_connections:
+                G.add_edge(node.scats_number, connection.node.scats_number)
+
+    pos = nx.get_node_attributes(G, 'pos')
+    nx.draw_networkx_nodes(G, pos, node_size=500)
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
+    nx.draw_networkx_labels(G, pos)
+    plt.show()
 
 
 if __name__ == '__main__':
