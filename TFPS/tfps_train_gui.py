@@ -3,7 +3,7 @@ import threading
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from TFPS.main import train_all_of_model
+from main import train_all_of_model
 from data.scats import ScatsData
 from train import train_with_args
 

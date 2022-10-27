@@ -13,7 +13,7 @@ from model import model
 from keras.models import Model
 from keras.callbacks import EarlyStopping
 from data.scats import ScatsData
-from model.model import get_sae2
+from model.model import get_sae
 from settings import get_setting
 
 warnings.filterwarnings("ignore")
@@ -52,39 +52,7 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
     print("Training complete!")
 
 
-def train_seas(models, x_train, y_train, name, scats, junction, config):
-    """Trains the SAEs model
-    Parameters needed:
-        - model: list type of SAE model to be trained
-        - x_train: the input data for training
-        - y_train: the output or result from training
-        - name: the name of the model
-        - scats: the scats site number
-        - junction: the number that corresponds to the scat site based on the vic roads data
-        - config: values for training found in config.json """
-
-    temp = x_train
-    # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
-    for i in range(len(models) - 1):
-        if i > 0:
-            p = models[i - 1]
-            hidden_layer_model = Model(p.input,
-                                       p.get_layer('hidden').output)
-            temp = hidden_layer_model.predict(temp)
-        m = models[i]
-        m.compile(loss="mse", optimizer="rmsprop", metrics=['mape'])
-        m.fit(temp, y_train, batch_size=config["batch"],
-              epochs=config["epochs"],
-              validation_split=0.05)
-        models[i] = m
-    saes = models[-1]
-    for i in range(len(models) - 1):
-        weights = models[i].get_layer('hidden').get_weights()
-        saes.get_layer('hidden%d' % (i + 1)).set_weights(weights)
-    train_model(saes, x_train, y_train, name, scats, junction, config)
-
-
-def train_seas2(x_train, name, scats, junction, config):
+def train_saes(x_train, name, scats, junction, config):
     """Trains the SAEs model TODO FIX THIS
     Parameters needed:
         - model: list type of SAE model to be trained
@@ -97,34 +65,36 @@ def train_seas2(x_train, name, scats, junction, config):
 
     temp = x_train
 
-    autoencoder_1 = get_sae2(temp, 400, 96)
+    autoencoder_1 = get_sae(temp, 400, 96)
     autoencoder_1.compile(loss="mse", optimizer="adam", metrics=['mape'])
     stack_1 = autoencoder_1.fit(x_train, x_train, batch_size=config["batch"], epochs=config["epochs"],
-                                validation_split=0.05)
+                                validation_split=0.33)
 
-    autoencoder_2_input = autoencoder_1.predict(x_train)
-    autoencoder_2_input = np.concatenate(autoencoder_2_input, x_train)
+    autoencoder_2_input = autoencoder_1.predict(temp)
+    # autoencoder_2_input = np.concatenate(autoencoder_2_input, x_train, axis=1)
+    # autoencoder_2_input = np.append(autoencoder_2_input, x_train, axis=1)
 
-    autoencoder_2 = get_sae2(96 * 2, 400, 96 * 2)
+    autoencoder_2 = get_sae(autoencoder_2_input, 400, 96)
     autoencoder_2.compile(loss="mse", optimizer="adam", metrics=['mape'])
     stack_2 = autoencoder_2.fit(autoencoder_2_input, autoencoder_2_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.05)
+                                epochs=config["epochs"], validation_split=0.33)
 
-    autoencoder_3_input = autoencoder_2.predict(x_train)
-    autoencoder_3_input = np.concatenate(autoencoder_3_input, x_train)
+    autoencoder_3_input = autoencoder_2.predict(autoencoder_2_input)
+    # autoencoder_3_input = np.append(autoencoder_3_input, autoencoder_2_input, axis=1)
 
-    autoencoder_3 = get_sae2(96 * 3, 400, 1)
+    autoencoder_3 = get_sae(autoencoder_3_input, 400, 96)
     autoencoder_3.compile(loss="mse", optimizer="adam", metrics=['mape'])
     stack_3 = autoencoder_3.fit(autoencoder_3_input, autoencoder_3_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.05)
+                                epochs=config["epochs"], validation_split=0.33)
 
-    folder = "model/saes/{0}".format(name, scats)
-    file = "saes/{0}".format(folder, junction)
+    folder = "model/saes/{1}".format(name, scats)
+    file = "{0}/{1}".format(folder, junction)
 
+    temp1 = autoencoder_3.predict(x_train)
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    stack_3.save("saes.h5".format(file))
+    autoencoder_3.save("{0}.h5".format(file))
 
     df = pd.DataFrame.from_dict(stack_3.history)
     df.to_csv("saes loss.csv".format(file), encoding='utf-8', index=False)
@@ -169,13 +139,14 @@ def train_with_args(scats, junction, model_to_train):
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
                 if model_to_train == 'saes':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
-                    m = train_seas2(x_train, model_to_train, scats_site, junction, config)
+                    m = train_saes(x_train, model_to_train, scats_site, junction, config)
                     # def train_seas2(x_train, name, scats, junction, config):
                 if model_to_train == 'srnn':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
                     m = model.get_srnn([96, 64, 64, 1])
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
 
+                m.summary()
                 predicted = m.predict(x_test)
                 predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
                 with open('predictedvalues.json', 'r') as openfile:

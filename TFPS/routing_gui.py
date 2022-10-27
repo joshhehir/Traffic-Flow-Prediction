@@ -1,9 +1,10 @@
 import threading
-from time import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from data.scats import ScatsData
 from application import get_graph
+from PIL import Image
+import ascii_magic
 
 SCATS_DATA = ScatsData()
 
@@ -215,6 +216,9 @@ class UiRouting(object):
         routes = 5
         graph = get_graph()
         graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
+        img = Image.open('images/Boroondara.png')
+        img.show()
+
 
     def route_process(self):
         """Enables threads for the routing GUI"""

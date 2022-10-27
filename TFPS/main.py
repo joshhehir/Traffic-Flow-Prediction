@@ -85,9 +85,8 @@ def plot_results(y_true, y_preds, names):
             y_pred: List/ndarray, predicted data.
             names: List, Method names.
         """
-    d = '2016-3-4 00:00'
+    d = '2006-10-16 00:00'
     x = pd.date_range(d, periods=96, freq='15min')
-
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -107,15 +106,6 @@ def plot_results(y_true, y_preds, names):
     plt.show()
 
 
-def plot_error(mtx):
-    # Plot errors per model
-    fig = plt.figure(figsize=(7, 5))
-    labels = ["Mape", "EVS", "MAE", "MSE", "RMSE", "R2"]
-    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
-
-    return
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--scats", default=970, help="SCATS site number.")
@@ -124,7 +114,7 @@ def main():
 
     models = []
     untrained_models = []
-    model_names = ['LSTM', 'GRU', 'SAEs', 'SRNN']
+    model_names = ['LSTM', 'GRU', 'SRNN', 'SAEs']
 
     for name in model_names:
         file = "model/{0}/{1}/{2}.h5".format(name.lower(), args.scats, args.junction)
@@ -142,6 +132,7 @@ def main():
     y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
     y_preds = []
+    y_preds2 = []
     mtx = []
     for name, model in zip(model_names, models):
         if name == 'SAEs':
@@ -154,10 +145,12 @@ def main():
         predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
         y_preds.append(predicted[:96])
         print(name)
+        if name == 'SAEs':
+            # y_preds = np.resize(y_preds, 864)
+            predicted = np.resize(predicted, (864, 1))
         mtx.append(eva_regress(y_test, predicted))
 
     plot_results(y_test[:96], y_preds, model_names)
-    plot_error(mtx)
 
 
 def train_all_of_model(model):
