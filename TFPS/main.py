@@ -146,7 +146,7 @@ def main():
         y_preds.append(predicted[:96])
         print(name)
         if name == 'SAEs':
-            #y_preds = np.resize(y_preds, 864)
+            # y_preds = np.resize(y_preds, 864)
             predicted = np.resize(predicted, (864, 1))
         mtx.append(eva_regress(y_test, predicted))
 
