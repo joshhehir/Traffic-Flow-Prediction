@@ -228,10 +228,10 @@ class UiRouting(object):
         # print(time_input_value)
         routes = 5
         graph = get_graph()
-        graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
+        # graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
 
         self.figure.clear()
-        data = route_graph()
+        data = route_graph(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
         self.canvas.draw()
 
 
