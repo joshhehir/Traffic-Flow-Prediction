@@ -57,7 +57,6 @@ class Vector(object):
         return (c * r)
 
     def to_tuple(self):
-
         lon = radians(self.x)
         lat = radians(self.y)
 
@@ -359,9 +358,10 @@ class Graph(object):
                     total_cost += volume
                     distance_in_km = i.coordinates.distance(path[index + 1][0].coordinates)
                     time = self.calculate_time(volume, 60, distance_in_km)
-                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km. Node coordinates: {5}".format(i.scats_number, j.streets[0],
-                                                                                        j.streets[1], time * 60,
-                                                                                        distance_in_km, i.coordinates))
+                    print("{0} - {1} {2}. Cost: {3:.2f} mins Distance {4:.2f}km. Node coordinates: {5}".format(
+                        i.scats_number, j.streets[0],
+                        j.streets[1], time * 60,
+                        distance_in_km, i.coordinates))
                     elapsed_time += time * 60
                 index += 1
 
@@ -427,11 +427,8 @@ def get_graph():
     return graph
 
 
-def main():
+def make_graph():
     graph = get_graph()
-    graph.show_graph()
-    graph.get_paths(970, 4040, 5, "gru", 0 * 4 * 15)
-
     G = nx.DiGraph()
     for node in graph.nodes:
         if node.coordinates.x != 0:
@@ -444,6 +441,27 @@ def main():
     nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
     nx.draw_networkx_labels(G, pos)
     plt.show()
+
+
+def main():
+    graph = get_graph()
+    graph.show_graph()
+    graph.get_paths(970, 4040, 5, "gru", 0 * 4 * 15)
+
+    """G = nx.DiGraph()
+    for node in graph.nodes:
+        if node.coordinates.x != 0:
+            G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
+            for connection in node.outgoing_connections:
+                G.add_edge(node.scats_number, connection.node.scats_number)
+
+    pos = nx.get_node_attributes(G, 'pos')
+    nx.draw_networkx_nodes(G, pos, node_size=500)
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
+    nx.draw_networkx_labels(G, pos)
+    plt.show()"""
+
+    make_graph()
 
 
 if __name__ == '__main__':

@@ -3,8 +3,11 @@ import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 from data.scats import ScatsData
 from application import get_graph
+from application import make_graph
 from PIL import Image
-import ascii_magic
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 SCATS_DATA = ScatsData()
 
@@ -44,6 +47,9 @@ class UiRouting(object):
         self.vertical_layout = QtWidgets.QVBoxLayout(self.main_widget)
         self.time_layout = QtWidgets.QFormLayout()
         self.out_textEdit = QtWidgets.QPlainTextEdit(self.main_widget)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
 
         sys.stdout = ConsoleStream(text_output=self.display_output)
 
@@ -125,6 +131,7 @@ class UiRouting(object):
         self.vertical_layout.addLayout(self.time_layout)
         self.vertical_layout.addWidget(self.predict_push_button)
         self.vertical_layout.addWidget(self.out_textEdit)
+        self.vertical_layout.addWidget(self.canvas)
 
         main_window.setCentralWidget(self.main_widget)
 
@@ -203,11 +210,13 @@ class UiRouting(object):
         """Passes routing parameters"""
         model_combo_value = self.model_comboBox.itemText(self.model_comboBox.currentIndex()).lower()
 
-        origin_scats_number = self.origin_scats_number_combo_box.itemText(self.origin_scats_number_combo_box.currentIndex())
+        origin_scats_number = self.origin_scats_number_combo_box.itemText(
+            self.origin_scats_number_combo_box.currentIndex())
         if origin_scats_number != "":
             origin_scats_number = int(origin_scats_number)
 
-        destination_scats_number = self.destination_scats_number_combo_box.itemText(self.destination_scats_number_combo_box.currentIndex())
+        destination_scats_number = self.destination_scats_number_combo_box.itemText(
+            self.destination_scats_number_combo_box.currentIndex())
         if destination_scats_number != "":
             destination_scats_number = int(destination_scats_number)
 
@@ -216,9 +225,10 @@ class UiRouting(object):
         routes = 5
         graph = get_graph()
         graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
-        img = Image.open('images/Boroondara.png')
-        img.show()
 
+        self.figure.clear()
+        data = make_graph()
+        self.canvas.draw()
 
     def route_process(self):
         """Enables threads for the routing GUI"""
