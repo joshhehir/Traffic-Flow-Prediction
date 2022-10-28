@@ -2,6 +2,7 @@
 Train the NN model.
 """
 import sys
+import traceback
 import warnings
 import argparse
 import os
@@ -66,26 +67,26 @@ def train_saes(x_train, name, scats, junction, config):
     temp = x_train
 
     autoencoder_1 = get_sae(temp, 400, 96)
-    autoencoder_1.compile(loss="mse", optimizer="adam", metrics=['mape'])
+    autoencoder_1.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_1 = autoencoder_1.fit(x_train, x_train, batch_size=config["batch"], epochs=config["epochs"],
-                                validation_split=0.33)
+                                validation_split=0.10)
 
     autoencoder_2_input = autoencoder_1.predict(temp)
     # autoencoder_2_input = np.concatenate(autoencoder_2_input, x_train, axis=1)
     # autoencoder_2_input = np.append(autoencoder_2_input, x_train, axis=1)
 
     autoencoder_2 = get_sae(autoencoder_2_input, 400, 96)
-    autoencoder_2.compile(loss="mse", optimizer="adam", metrics=['mape'])
+    autoencoder_2.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_2 = autoencoder_2.fit(autoencoder_2_input, autoencoder_2_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.33)
+                                epochs=config["epochs"], validation_split=0.10)
 
     autoencoder_3_input = autoencoder_2.predict(autoencoder_2_input)
     # autoencoder_3_input = np.append(autoencoder_3_input, autoencoder_2_input, axis=1)
 
     autoencoder_3 = get_sae(autoencoder_3_input, 400, 96)
-    autoencoder_3.compile(loss="mse", optimizer="adam", metrics=['mape'])
+    autoencoder_3.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_3 = autoencoder_3.fit(autoencoder_3_input, autoencoder_3_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.33)
+                                epochs=config["epochs"], validation_split=0.10)
 
     folder = "model/saes/{1}".format(name, scats)
     file = "{0}/{1}".format(folder, junction)
@@ -140,7 +141,6 @@ def train_with_args(scats, junction, model_to_train):
                 if model_to_train == 'saes':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
                     m = train_saes(x_train, model_to_train, scats_site, junction, config)
-                    # def train_seas2(x_train, name, scats, junction, config):
                 if model_to_train == 'srnn':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
                     m = model.get_srnn([96, 64, 64, 1])
@@ -168,6 +168,7 @@ def train_with_args(scats, junction, model_to_train):
                 with open("predictedvalues.json", "w") as outfile:
                     outfile.write(json_object)
             except:
+                print(traceback.print_exc())
                 print("Could not create model for {0} : {1} - {2}".format(model_to_train, scats_site, junction))
 
 
