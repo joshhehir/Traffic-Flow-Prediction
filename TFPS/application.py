@@ -429,7 +429,6 @@ def get_graph():
 
 
 def make_graph():
-    
     graph = get_graph()
 
     excluded_nodes = [2846, 2200, 2825, 2820, 4812, 4821]
@@ -438,7 +437,7 @@ def make_graph():
         if node.coordinates.x != 0:
             if node.scats_number not in excluded_nodes:
                 G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
-                
+
                 for connection in node.outgoing_connections:
                     if connection.node.scats_number not in excluded_nodes:
                         G.add_edge(node.scats_number, connection.node.scats_number)
@@ -460,7 +459,7 @@ def route_graph(origin, destination, min_path_count, model, time_in_minutes):
         if node.coordinates.x != 0:
             if node.scats_number not in excluded_nodes:
                 G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
-                
+
                 for connection in node.outgoing_connections:
                     if connection.node.scats_number not in excluded_nodes:
                         G.add_edge(node.scats_number, connection.node.scats_number)
@@ -476,10 +475,11 @@ def route_graph(origin, destination, min_path_count, model, time_in_minutes):
         edge_size_map.append(size)
 
     pos = nx.get_node_attributes(G, 'pos')
-    nx.draw_networkx_nodes(G, pos, node_size=200, node_color = colour_map)
-    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color = edge_colour_map, width = edge_size_map)
+    nx.draw_networkx_nodes(G, pos, node_size=200, node_color=colour_map)
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color=edge_colour_map, width=edge_size_map)
     nx.draw_networkx_labels(G, pos)
     plt.show()
+
 
 def set_node_colour(node, paths):
     for i, j in paths[0]:
@@ -487,21 +487,23 @@ def set_node_colour(node, paths):
             return 'red'
     return 'gray'
 
+
 def set_edge_attributes(edge, paths):
     x = 0
     for i, j in paths[0]:
         if edge[0] == i.scats_number:
             node = None
             try:
-                node = paths[0][x+1][1].node.scats_number
+                node = paths[0][x + 1][1].node.scats_number
                 if edge[1] == node:
                     return 'red', 4
                 else:
                     return 'black', 0
             except:
                 print("oops")
-        x+=1
+        x += 1
     return 'black', 1
+
 
 def main():
     graph = get_graph()
