@@ -1,8 +1,9 @@
 """
 Definition of NN model
 """
+import keras
 from keras import regularizers, Input
-from keras.layers import Dense, Dropout, Activation, LSTM, GRU, SimpleRNN
+from keras.layers import Dense, Dropout, Activation, Flatten, LSTM, GRU, SimpleRNN
 from keras.models import Sequential
 
 def get_lstm(units):
@@ -52,48 +53,80 @@ def get_sae(x_train, hidden, output):
         model: Model, nn model.
     """
 
-    # batch_size = 64
     input_dim = x_train[0].shape[0]
+    # learning_rate = 1e-5
     learning_rate = 1e-5
-
     model = Sequential()
-
+    model.add(Flatten())
     # first layer
     model.add(Dense(hidden, input_dim=input_dim, name='input', activation="relu"))
 
     # second layer
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
-    # add dropout
-    model.add(Dropout(0.2))
-
     # Third layer
-    # model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+    #model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
     # add dropout
     # model.add(Dropout(0.2))
 
     # Fourth/Bottleneck layer
-    # model.add(Dense(hidden / 8, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
-
-    # Fifth layer
     model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
-    # add dropout
+    # Fifth layer
+    #model.add(Dense(hidden / 4, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
     model.add(Dropout(0.2))
 
     # Sixth layer
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
     # add dropout
-    # model.add(Dropout(0.2))
+    model.add(Dropout(0.2))
 
-    # model.add(Dense(hidden, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+    model.add(Dense(hidden, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
+
     # Output layer
     model.add(Dense(output, activation="sigmoid"))
+    model.add(keras.layers.Reshape((-1,96)))
 
     return model
 
+
+def get_sae2(x_train, output):
+    batch_size = 32
+    input_dim = x_train[0].shape[0]  # num of predictor variables
+    learning_rate = 3e-5
+    # Input Layer
+    input_layer = Input(shape=(input_dim,), name='input')
+    # Encoder’s first dense layer
+    encoder = Dense(2000, activation='relu', activity_regularizer=regularizers.l1(learning_rate))(input_layer)
+    encoder = Dropout(0.3)(encoder)
+    # Encoder’s second dense layer
+    encoder = Dense(1000, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(encoder)
+
+    encoder = Dropout(0.3)(encoder)
+    # Encoder’s third dense layer
+    encoder = Dense(500, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(encoder)
+    encoder = Dropout(0.3)(encoder)
+    # Code layer
+    encoder = Dense(200, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(encoder)
+    # Decoder’s first dense layer
+    decoder = Dense(500, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(encoder)
+    # Decoder’s second dense layer
+    # add dropout
+    decoder = Dropout(0.3)(decoder)
+
+    decoder = Dense(1000, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(decoder)
+    decoder = Dropout(0.3)(decoder)
+    # Decoder’s Third dense layer
+    decoder = Dense(2000, activation='relu',activity_regularizer=regularizers.l1(learning_rate))(decoder)
+    decoder = Dropout(0.3)(decoder)
+    # Output Layer
+    decoder = Dense(output, activation='sigmoid', activity_regularizer=regularizers.l1(learning_rate))(decoder)
+
+    model = keras.Model(inputs=input_layer, outputs=decoder)
+
+    return model
 
 def get_srnn(units):
     """SRNN(Simple recurrent neural network)

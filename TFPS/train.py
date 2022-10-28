@@ -6,6 +6,7 @@ import warnings
 import argparse
 import os
 import json
+import traceback
 import numpy as np
 import pandas as pd
 from data.data import process_data
@@ -14,6 +15,7 @@ from keras.models import Model
 from keras.callbacks import EarlyStopping
 from data.scats import ScatsData
 from model.model import get_sae
+from model.model import get_sae2
 from settings import get_setting
 
 warnings.filterwarnings("ignore")
@@ -65,27 +67,28 @@ def train_saes(x_train, name, scats, junction, config):
 
     temp = x_train
 
-    autoencoder_1 = get_sae(temp, 400, 96)
-    autoencoder_1.compile(loss="mse", optimizer="adam", metrics=['mape'])
-    stack_1 = autoencoder_1.fit(x_train, x_train, batch_size=config["batch"], epochs=config["epochs"],
-                                validation_split=0.33)
+    autoencoder_1 = get_sae(temp, 64, 96)
+    autoencoder_1.compile(loss="mse", optimizer="adam", metrics='mape')
+    stack_1 = autoencoder_1.fit(x_train, x_train, batch_size=32, epochs=200,
+                                validation_data=(x_train, x_train))
 
     autoencoder_2_input = autoencoder_1.predict(temp)
     # autoencoder_2_input = np.concatenate(autoencoder_2_input, x_train, axis=1)
     # autoencoder_2_input = np.append(autoencoder_2_input, x_train, axis=1)
 
-    autoencoder_2 = get_sae(autoencoder_2_input, 400, 96)
-    autoencoder_2.compile(loss="mse", optimizer="adam", metrics=['mape'])
-    stack_2 = autoencoder_2.fit(autoencoder_2_input, autoencoder_2_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.33)
+    autoencoder_2 = get_sae(autoencoder_2_input, 64, 96)
+    autoencoder_2.compile(loss="mse", optimizer="adam", metrics='mape')
+    stack_2 = autoencoder_2.fit(autoencoder_2_input, autoencoder_2_input, batch_size=32,
+                                epochs=150, validation_split=0.10)
 
     autoencoder_3_input = autoencoder_2.predict(autoencoder_2_input)
     # autoencoder_3_input = np.append(autoencoder_3_input, autoencoder_2_input, axis=1)
 
-    autoencoder_3 = get_sae(autoencoder_3_input, 400, 96)
-    autoencoder_3.compile(loss="mse", optimizer="adam", metrics=['mape'])
+    autoencoder_3 = get_sae(autoencoder_3_input, 64, 96)
+    autoencoder_3.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_3 = autoencoder_3.fit(autoencoder_3_input, autoencoder_3_input, batch_size=config["batch"],
-                                epochs=config["epochs"], validation_split=0.33)
+                                epochs=150, validation_split=0.10)
+
 
     folder = "model/saes/{1}".format(name, scats)
     file = "{0}/{1}".format(folder, junction)
@@ -102,6 +105,54 @@ def train_saes(x_train, name, scats, junction, config):
 
     return autoencoder_3
 
+
+def train_saes2(x_train, name, scats, junction, config):
+    """Trains the SAEs model TODO FIX THIS
+    Parameters needed:
+        - model: list type of SAE model to be trained
+        - x_train: the input data for training
+        - y_train: the output or result from training
+        - name: the name of the model
+        - scats: the scats site number
+        - junction: the number that corresponds to the scat site based on the vic roads data
+        - config: values for training found in config.json """
+
+    temp = x_train
+
+    autoencoder_1 = get_sae2(x_train, 96)
+    autoencoder_1.compile(metrics='mape', loss='mse', optimizer ='adam')
+    stack_1 = autoencoder_1.fit(x_train, x_train, epochs=200,
+                                batch_size=32)
+
+    autoencoder_2_input = autoencoder_1.predict(x_train)
+
+    autoencoder_2 = get_sae2(autoencoder_2_input, 96)
+    autoencoder_2.compile(metrics='mape', loss='mse', optimizer ='adam')
+    stack_2 = autoencoder_2.fit(autoencoder_2_input,
+                                autoencoder_2_input, epochs=100, batch_size=32)
+
+    autoencoder_3_input = autoencoder_2.predict(autoencoder_2_input)
+    output = 1
+
+    autoencoder_3 = get_sae2(autoencoder_3_input, 1)
+    autoencoder_3.compile(metrics='mape', loss='mse', optimizer ='adam')
+    stack_3 = autoencoder_3.fit(autoencoder_3_input,
+                                autoencoder_3_input, epochs=50, batch_size=16)
+
+    folder = "model/saes/{1}".format(name, scats)
+    file = "{0}/{1}".format(folder, junction)
+
+    temp1 = autoencoder_3.predict(x_train)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    autoencoder_3.save("{0}.h5".format(file))
+
+    df = pd.DataFrame.from_dict(stack_3.history)
+    df.to_csv("saes loss.csv".format(file), encoding='utf-8', index=False)
+    print("Training complete!")
+
+    return autoencoder_3
 
 def train_with_args(scats, junction, model_to_train):
     """ Begin training a model with arguments
@@ -138,7 +189,7 @@ def train_with_args(scats, junction, model_to_train):
                     m = model.get_gru([96, 64, 64, 1])
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
                 if model_to_train == 'saes':
-                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1]))
+                    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
                     m = train_saes(x_train, model_to_train, scats_site, junction, config)
                     # def train_seas2(x_train, name, scats, junction, config):
                 if model_to_train == 'srnn':
@@ -168,6 +219,7 @@ def train_with_args(scats, junction, model_to_train):
                 with open("predictedvalues.json", "w") as outfile:
                     outfile.write(json_object)
             except:
+                print(traceback.print_exc())
                 print("Could not create model for {0} : {1} - {2}".format(model_to_train, scats_site, junction))
 
 
