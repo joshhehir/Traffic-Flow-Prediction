@@ -54,7 +54,7 @@ def get_sae(x_train, hidden, output):
 
     # batch_size = 64
     input_dim = x_train[0].shape[0]
-    learning_rate = 1e-5
+    learning_rate = 5e-5
 
     model = Sequential()
 
@@ -86,7 +86,7 @@ def get_sae(x_train, hidden, output):
     model.add(Dense(hidden / 2, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
 
     # add dropout
-    # model.add(Dropout(0.2))
+    model.add(Dropout(0.2))
 
     # model.add(Dense(hidden, activation="relu", activity_regularizer=regularizers.l1(learning_rate)))
     # Output layer
