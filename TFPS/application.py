@@ -446,7 +446,6 @@ def make_graph():
     nx.draw_networkx_nodes(G, pos, node_size=200)
     nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
     nx.draw_networkx_labels(G, pos)
-    plt.show()
 
 
 def route_graph(origin, destination, min_path_count, model, time_in_minutes):
@@ -478,7 +477,6 @@ def route_graph(origin, destination, min_path_count, model, time_in_minutes):
     nx.draw_networkx_nodes(G, pos, node_size=200, node_color=colour_map)
     nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color=edge_colour_map, width=edge_size_map)
     nx.draw_networkx_labels(G, pos)
-    plt.show()
 
 
 def set_node_colour(node, paths):
