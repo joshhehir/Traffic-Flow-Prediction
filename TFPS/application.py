@@ -429,17 +429,22 @@ def get_graph():
 
 
 def make_graph():
+    
     graph = get_graph()
 
+    excluded_nodes = [2846, 2200, 2825, 2820, 4812, 4821]
     G = nx.DiGraph()
     for node in graph.nodes:
         if node.coordinates.x != 0:
-            G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
-            for connection in node.outgoing_connections:
-                G.add_edge(node.scats_number, connection.node.scats_number)
+            if node.scats_number not in excluded_nodes:
+                G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
+                
+                for connection in node.outgoing_connections:
+                    if connection.node.scats_number not in excluded_nodes:
+                        G.add_edge(node.scats_number, connection.node.scats_number)
 
     pos = nx.get_node_attributes(G, 'pos')
-    nx.draw_networkx_nodes(G, pos, node_size=500)
+    nx.draw_networkx_nodes(G, pos, node_size=200)
     nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='black')
     nx.draw_networkx_labels(G, pos)
     plt.show()
@@ -449,14 +454,16 @@ def route_graph(origin, destination, min_path_count, model, time_in_minutes):
     """TODO make this the routed graph with highlights etc"""
     graph = get_graph()
     paths = graph.get_paths(origin, destination, min_path_count, model, time_in_minutes)
-
+    excluded_nodes = [2846, 2200, 2825, 2820, 4812, 4821]
     G = nx.DiGraph()
     for node in graph.nodes:
         if node.coordinates.x != 0:
-            G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
-            
-            for connection in node.outgoing_connections:
-                G.add_edge(node.scats_number, connection.node.scats_number)
+            if node.scats_number not in excluded_nodes:
+                G.add_node(node.scats_number, pos=node.coordinates.to_tuple())
+                
+                for connection in node.outgoing_connections:
+                    if connection.node.scats_number not in excluded_nodes:
+                        G.add_edge(node.scats_number, connection.node.scats_number)
 
     colour_map = []
     for node in G:
@@ -478,7 +485,7 @@ def set_node_colour(node, paths):
     for i, j in paths[0]:
         if node == i.scats_number:
             return 'red'
-    return 'blue'
+    return 'gray'
 
 def set_edge_attributes(edge, paths):
     x = 0
@@ -488,7 +495,7 @@ def set_edge_attributes(edge, paths):
             try:
                 node = paths[0][x+1][1].node.scats_number
                 if edge[1] == node:
-                    return 'red', 2
+                    return 'red', 4
                 else:
                     return 'black', 0
             except:
