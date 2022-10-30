@@ -132,7 +132,6 @@ def main():
     y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).reshape(1, -1)[0]
 
     y_preds = []
-    y_preds2 = []
     mtx = []
     for name, model in zip(model_names, models):
         if name == 'SAEs':
@@ -146,7 +145,6 @@ def main():
         y_preds.append(predicted[:96])
         print(name)
         if name == 'SAEs':
-            # y_preds = np.resize(y_preds, 864)
             predicted = np.resize(predicted, (864, 1))
         mtx.append(eva_regress(y_test, predicted))
 

@@ -11,8 +11,6 @@ import numpy as np
 import pandas as pd
 from data.data import process_data
 from model import model
-from keras.models import Model
-from keras.callbacks import EarlyStopping
 from data.scats import ScatsData
 from model.model import get_sae
 from settings import get_setting
@@ -32,6 +30,7 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
         - junction: the number that corresponds to the scat site based on the vic roads data
         - config: values for training found in config.json """
 
+    # Compile and fit the model
     model.compile(loss="mse", optimizer="rmsprop", metrics=['mape'])
     # early = EarlyStopping(monitor='val_loss', patience=30, verbose=0, mode='auto')
     hist = model.fit(
@@ -40,6 +39,7 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
         epochs=config["epochs"],
         validation_split=0.05)
 
+    # Save the outputted model
     folder = "model/{0}/{1}".format(name, scats)
     file = "{0}/{1}".format(folder, junction)
 
@@ -54,44 +54,42 @@ def train_model(model, x_train, y_train, name, scats, junction, config):
 
 
 def train_saes(x_train, name, scats, junction, config):
-    """Trains the SAEs model TODO FIX THIS
+    """Trains the SAEs model
     Parameters needed:
-        - model: list type of SAE model to be trained
         - x_train: the input data for training
-        - y_train: the output or result from training
         - name: the name of the model
         - scats: the scats site number
         - junction: the number that corresponds to the scat site based on the vic roads data
         - config: values for training found in config.json """
 
-    temp = x_train
-
-    autoencoder_1 = get_sae(temp, 400, 96)
+    # make the first encoder and compile + train
+    autoencoder_1 = get_sae(x_train, 400, 96)
     autoencoder_1.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_1 = autoencoder_1.fit(x_train, x_train, batch_size=config["batch"], epochs=config["epochs"],
                                 validation_split=0.10)
 
-    autoencoder_2_input = autoencoder_1.predict(temp)
-    # autoencoder_2_input = np.concatenate(autoencoder_2_input, x_train, axis=1)
-    # autoencoder_2_input = np.append(autoencoder_2_input, x_train, axis=1)
+    # get the result from the first model
+    autoencoder_2_input = autoencoder_1.predict(x_train)
 
+    # make the second encoder and compile + train
     autoencoder_2 = get_sae(autoencoder_2_input, 400, 96)
     autoencoder_2.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_2 = autoencoder_2.fit(autoencoder_2_input, autoencoder_2_input, batch_size=config["batch"],
                                 epochs=config["epochs"], validation_split=0.10)
 
+    # get the result from the second model
     autoencoder_3_input = autoencoder_2.predict(autoencoder_2_input)
-    # autoencoder_3_input = np.append(autoencoder_3_input, autoencoder_2_input, axis=1)
 
+    # make the third encoder and compile + train
     autoencoder_3 = get_sae(autoencoder_3_input, 400, 96)
     autoencoder_3.compile(loss="mse", optimizer="adam", metrics='mape')
     stack_3 = autoencoder_3.fit(autoencoder_3_input, autoencoder_3_input, batch_size=config["batch"],
                                 epochs=config["epochs"], validation_split=0.10)
 
+    # Save the outputted model
     folder = "model/saes/{1}".format(name, scats)
     file = "{0}/{1}".format(folder, junction)
 
-    temp1 = autoencoder_3.predict(x_train)
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -101,6 +99,7 @@ def train_saes(x_train, name, scats, junction, config):
     df.to_csv("saes loss.csv".format(file), encoding='utf-8', index=False)
     print("Training complete!")
 
+    # Return it out of scope
     return autoencoder_3
 
 
@@ -113,6 +112,7 @@ def train_with_args(scats, junction, model_to_train):
         - model_to_train: the NN model
         """
 
+    # logic to check which scat site data to use
     scats_numbers = SCATS_DATA.get_all_scats_numbers()
 
     if scats != "all":
@@ -127,9 +127,10 @@ def train_with_args(scats, junction, model_to_train):
         config = get_setting("train_config")
         for junction in junctions:
             print("training {0} : {1} - {2}".format(model_to_train, scats_site, junction))
-            try:
+            try: # Get the data into scope
                 x_train, y_train, x_test, y_test, scaler = process_data(scats_site, junction, config["lag"])
 
+                # Check the model type and proceed with logic to get the relevant model
                 if model_to_train == 'lstm':
                     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
                     m = model.get_lstm([96, 64, 64, 1])
@@ -147,8 +148,13 @@ def train_with_args(scats, junction, model_to_train):
                     train_model(m, x_train, y_train, model_to_train, scats_site, junction, config)
 
                 m.summary()
+                # Try using the model to predict
                 predicted = m.predict(x_test)
+
+                # Rescale the results
                 predicted = scaler.inverse_transform(predicted.reshape(-1, 1)).reshape(1, -1)[0]
+
+                # file I/O to save the predictions
                 with open('predictedvalues.json', 'r') as openfile:
 
                     # Reading from json file
