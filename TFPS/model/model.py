@@ -76,6 +76,8 @@ def get_sae(x_train, hidden, output):
     # Get the input dimensions
     input_dim = x_train[0].shape[0]
 
+    learning_rate = 5e-5
+
     # Create a Sequential model
     model = Sequential()
 

@@ -224,14 +224,7 @@ class UiRouting(object):
             destination_scats_number = int(destination_scats_number)
 
         time_input_value = self.time_input.time().hour() * 60 + self.time_input.time().minute()
-        # print(time_input_value)
         routes = 5
-        # graph = get_graph()
-        # graph.get_paths(origin_scats_number, destination_scats_number, routes, model_combo_value, time_input_value)
-
-        # self.canvas.deleteLater()
-        # self.canvas1 = FigureCanvas(self.figure)
-        # self.vertical_layout.addWidget(self.canvas1)
 
         self.figure.clear()
         self.canvas.draw()

@@ -1,6 +1,6 @@
 ## Traffic Flow Prediction
 
-Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU) 
+Traffic Flow Prediction with Neural Networks(SAEs、LSTM、GRU, SRNN) 
 
 COS30018 - Intelligent Systems
 
@@ -23,24 +23,15 @@ tensorflow
 
 ## Train the model
 
-**Run command below to train the model:**
+**Run command below to open the training gui to train your models:**
 
 ```
-python train.py --model model_name
+python tfps_train_gui.py
 ```
 
-You can choose "lstm", "gru" or "saes" as arguments. The ```.h5``` weight file was saved at model folder.
-
+![evaluate](/TFPS/images/train_gui.png)
 
 ## Experiment
-
-Data are obtained from the Caltrans Performance Measurement System (PeMS). Data are collected in real-time from individual detectors spanning the freeway system across all major metropolitan areas of the State of California.
-	
-	device: Tesla K80
-	dataset: PeMS 5min-interval traffic flow data
-	optimizer: RMSprop(lr=0.001, rho=0.9, epsilon=1e-06)
-	batch_szie: 256 
-
 
 **Run command below to run the program:**
 
@@ -53,11 +44,24 @@ These are the details for the traffic flow prediction experiment.
 
 | Metrics | MAE | MSE | RMSE | MAPE |  R2  | Explained variance score |
 | ------- |:---:| :--:| :--: | :--: | :--: | :----------------------: |
-| LSTM | 7.21 | 98.05 | 9.90 | 16.56% | 0.9396 | 0.9419 |
-| GRU | 7.20 | 99.32 | 9.97| 16.78% | 0.9389 | 0.9389|
-| SAEs | 7.06 | 92.08 | 9.60 | 17.80% | 0.9433 | 0.9442 |
+| LSTM | 14.70 | 416.07 | 20.4 | 13.77% | 0.975 | 0.975 |
+| GRU  | 15.21 | 457.73 | 21.39 | 16.47% | 0.972 | 0.973 |
+| SRNN | 17.83 | 588.97 | 24.27 | 21.87% | 0.965 | 0.965 |
+| SAEs | 55.26 | 6241.41| 79.00 | 66.74 | 0.625 | 0.664 |
 
 ![evaluate](/TFPS/images/eva.png)
+
+## Routing Prediction
+
+**Run command below to open the routing gui:**
+
+```
+python routing_gui.py
+```
+
+Use the routing gui to predict a path from an origin scats point to a destination scats point.
+
+![evaluate](/TFPS/images/routing_gui.png)
 
 ## Authors
 
