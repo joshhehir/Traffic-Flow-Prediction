@@ -449,7 +449,7 @@ def make_graph():
 
 
 def route_graph(origin, destination, min_path_count, model, time_in_minutes):
-    """TODO make this the routed graph with highlights etc"""
+    """Returns graph with highlighted path"""
     graph = get_graph()
     paths = graph.get_paths(origin, destination, min_path_count, model, time_in_minutes)
     excluded_nodes = [2846, 2200, 2825, 2820, 4812, 4821]
